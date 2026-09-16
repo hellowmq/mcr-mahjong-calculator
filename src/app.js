@@ -1,5 +1,6 @@
 import { countFan } from "gb-mahjong-js/lib/api/index.js";
 import constants from "gb-mahjong-js/lib/core/constants.js";
+import QRCode from "qrcode";
 import { FAN_POINTS, FANS } from "./fans.js";
 
 const FAN_BY_NAME = new Map(FANS.map((fan) => [fan.name, fan]));
@@ -152,6 +153,26 @@ function renderCatalog() {
   }).join("");
 }
 
+async function renderShareCode() {
+  const urlElement = $("#share-url");
+  const noteElement = $("#share-note");
+  const canvas = $("#share-qr");
+  const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+  const url = isHttp ? `${window.location.origin}${window.location.pathname}#calculator` : "http://本机内网地址:8080/";
+  urlElement.textContent = url;
+  noteElement.textContent = isHttp ? "扫码打开当前地址" : "请先通过 HTTP 静态服务打开本站";
+  try {
+    await QRCode.toCanvas(canvas, url, {
+      width: 96,
+      margin: 0,
+      color: { dark: "#111b26", light: "#f5eddf" },
+      errorCorrectionLevel: "M",
+    });
+  } catch (error) {
+    noteElement.textContent = "二维码生成失败，请复制地址";
+  }
+}
+
 function setView(view) {
   $$("[data-view-panel]").forEach((panel) => {
     const visible = panel.dataset.viewPanel === view;
@@ -186,3 +207,4 @@ renderCatalog();
 setPreview();
 calculate();
 setView(window.location.hash === "#catalog" ? "catalog" : "calculator");
+renderShareCode();

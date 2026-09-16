@@ -8,7 +8,8 @@
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
-    "gb-mahjong-js": "2.2.1"
+    "gb-mahjong-js": "2.2.1",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "esbuild": "0.25.9"
