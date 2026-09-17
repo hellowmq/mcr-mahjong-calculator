@@ -5,6 +5,7 @@ mkdirSync("dist", { recursive: true });
 copyFileSync("src/index.html", "dist/index.html");
 copyFileSync("src/styles.css", "dist/styles.css");
 copyFileSync("src/favicon.svg", "dist/favicon.svg");
+copyFileSync("src/mahjong-sprite.svg", "dist/mahjong-sprite.svg");
 
 await build({
   entryPoints: ["src/app.js"],

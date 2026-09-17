@@ -4,7 +4,7 @@ const html = readFileSync("dist/index.html", "utf8");
 const js = readFileSync("dist/app.js", "utf8");
 const css = readFileSync("dist/styles.css", "utf8");
 
-for (const marker of ["国标麻将算番", "算番器", "番种表", "81 番种"]) {
+for (const marker of ["国标麻将算番", "算番器", "番种表", "81 番种", "逐张点牌"]) {
   if (!html.includes(marker)) throw new Error(`missing HTML marker: ${marker}`);
 }
 
@@ -15,7 +15,7 @@ if (/fetch\s*\(|XMLHttpRequest|WebSocket/.test(js)) {
   throw new Error("runtime network API detected in static bundle");
 }
 if (css.length < 2000) throw new Error("stylesheet was not built");
-for (const path of ["dist/index.html", "dist/app.js", "dist/styles.css", "dist/favicon.svg"]) {
+for (const path of ["dist/index.html", "dist/app.js", "dist/styles.css", "dist/favicon.svg", "dist/mahjong-sprite.svg"]) {
   if (statSync(path).size === 0) throw new Error(`empty output: ${path}`);
 }
 

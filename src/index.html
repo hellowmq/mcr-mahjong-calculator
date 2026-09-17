@@ -2,163 +2,106 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#111b26" />
-    <meta name="description" content="纯前端国标麻将算番器与 81 番种表。输入只在当前浏览器处理。" />
-    <title>国标麻将算番｜算番器与番种表</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="纯前端国标麻将算番器与 81 番种表，逐张点牌，输入只在当前浏览器处理。" />
+    <title>国标麻将算番器</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="ambient ambient-left" aria-hidden="true"></div>
-    <div class="ambient ambient-right" aria-hidden="true"></div>
-
-    <header class="topbar site-width">
-      <a class="brand" href="#calculator" aria-label="返回算番器">
-        <span class="brand-mark"><span>GB</span><i></i></span>
-        <span class="brand-copy"><strong>国标麻将</strong><small>算番工作台</small></span>
-      </a>
-      <nav class="view-tabs" aria-label="主要页面">
-        <button class="view-tab is-active" type="button" data-view="calculator">算番器</button>
-        <button class="view-tab" type="button" data-view="catalog">番种表 <span>81</span></button>
-      </nav>
-      <div class="local-badge"><span></span>纯前端 · 无 API</div>
+    <header class="app-header">
+      <button class="header-link" type="button" data-view="guide" aria-label="查看用法">用法</button>
+      <h1>国标算番器</h1>
+      <button class="header-link" type="button" id="load-sample">示例</button>
     </header>
 
-    <main class="site-width">
-      <section class="view is-visible" id="calculator-view" data-view-panel="calculator" aria-labelledby="calculator-title">
-        <div class="section-heading calculator-heading">
-          <div>
-            <p class="eyebrow"><span class="eyebrow-rule"></span>中国麻将竞赛规则 · 98 规则</p>
-            <h1 id="calculator-title">把一手牌，<em>算清楚。</em></h1>
-            <p class="lede">输入立牌和副露，选择和牌场况。结果会展示番种、排斥关系与是否达到 8 番起和。</p>
+    <main>
+      <section class="view is-visible" data-view-panel="calculator" aria-labelledby="calculator-title">
+        <h2 class="sr-only" id="calculator-title">逐张点牌算番</h2>
+        <div class="counter-bar" aria-live="polite">
+          <span id="selection-label">逐张点牌</span>
+          <strong id="selection-count">13 / 14</strong>
+          <button type="button" class="reset-button" id="reset-hand">重置</button>
+        </div>
+
+        <section class="tile-picker" aria-label="选择麻将牌">
+          <div class="tile-row"><span>万</span><div class="tile-grid" id="wan-tiles"></div></div>
+          <div class="tile-row"><span>筒</span><div class="tile-grid" id="tong-tiles"></div></div>
+          <div class="tile-row"><span>条</span><div class="tile-grid" id="tiao-tiles"></div></div>
+          <div class="tile-row honors"><span>字</span><div class="tile-grid" id="honor-tiles"></div></div>
+        </section>
+
+        <section class="action-section" aria-label="录入方式">
+          <div class="action-tabs" role="tablist" aria-label="录入方式">
+            <button type="button" class="action-tab is-active" data-mode="hand">立牌</button>
+            <button type="button" class="action-tab" data-mode="chi">吃</button>
+            <button type="button" class="action-tab" data-mode="peng">碰</button>
+            <button type="button" class="action-tab" data-mode="mingGang">明杠</button>
+            <button type="button" class="action-tab" data-mode="anGang">暗杠</button>
           </div>
-          <div class="heading-aside">
-            <div class="rule-stamp" aria-label="规则提示">
-              <strong>8</strong>
-              <span>起和番</span>
-            </div>
-            <div class="share-panel" aria-label="局域网分享入口">
-              <div class="share-copy">
-                <p>局域网入口</p>
-                <strong id="share-url">等待当前地址</strong>
-                <small id="share-note">手机与电脑连接同一 Wi‑Fi 后扫码打开</small>
-              </div>
-              <div class="qr-frame"><canvas id="share-qr" width="96" height="96" aria-label="局域网地址二维码"></canvas></div>
-            </div>
+          <div class="draft-bar" id="draft-bar" hidden>
+            <span id="draft-label">正在组副露</span>
+            <div class="draft-tiles" id="draft-tiles"></div>
+            <button type="button" class="quiet-button" id="cancel-draft">取消</button>
+            <button type="button" class="confirm-button" id="confirm-draft">完成</button>
           </div>
-        </div>
-
-        <div class="calculator-layout">
-          <form class="panel input-panel" id="calculator-form">
-            <div class="panel-topline">
-              <div>
-                <p class="panel-kicker">01 / 输入牌面</p>
-                <h2>先把最后一张放对</h2>
+          <details class="context-details" id="context-details">
+            <summary><strong>场况</strong><span id="context-summary">东风圈 · 东风位 · 花牌 0</span></summary>
+            <div class="context-content">
+              <div class="condition-grid">
+                <fieldset class="wind-set"><legend>圈风</legend><div id="round-winds"></div></fieldset>
+                <fieldset class="wind-set"><legend>门风</legend><div id="seat-winds"></div></fieldset>
+                <div class="flower-control"><span>花牌</span><button type="button" data-flower-step="-1" aria-label="减少花牌">−</button><strong id="flower-count">0</strong><button type="button" data-flower-step="1" aria-label="增加花牌">＋</button></div>
               </div>
-              <button class="text-button" type="button" id="sample-button">载入示例 <span>↗</span></button>
-            </div>
-
-            <label class="field-label" for="hand-input">立牌 <span>最后一张视为和牌</span></label>
-            <div class="input-wrap">
-              <input id="hand-input" name="hand" autocomplete="off" spellcheck="false" value="123m123p123s789s东东" />
-              <span class="input-count" id="hand-count">14 张</span>
-            </div>
-            <p class="field-hint">格式：<code>123m456p789s</code>；字牌可直接输入 东南西北中发白。</p>
-            <div class="tile-preview" id="hand-preview" aria-label="立牌预览"></div>
-
-            <label class="field-label" for="meld-input">副露 <span>可选，使用标准括号格式</span></label>
-            <input id="meld-input" name="melds" autocomplete="off" spellcheck="false" placeholder="例如：[123m,1][EEE,2] 或 [SSSS]" />
-            <p class="field-hint">吃 / 碰 / 明杠写供牌方 <code>,1</code>–<code>,3</code>；暗杠不写供牌方。</p>
-
-            <div class="form-divider"></div>
-            <div class="panel-topline compact-topline">
-              <div>
-                <p class="panel-kicker">02 / 还原场况</p>
-                <h2>和牌方式与风位</h2>
+              <div class="condition-toggles" aria-label="和牌条件">
+                <label><input type="checkbox" data-condition="selfDrawn" /><span></span>自摸</label>
+                <label><input type="checkbox" data-condition="lastTile" /><span></span>海底捞月</label>
+                <label><input type="checkbox" data-condition="fourthTile" /><span></span>和绝张</label>
+                <label><input type="checkbox" data-condition="afterKong" /><span></span>杠上开花</label>
+                <label><input type="checkbox" data-condition="robKong" /><span></span>抢杠和</label>
               </div>
             </div>
+          </details>
+        </section>
 
-            <div class="select-grid">
-              <label class="select-field">圈风
-                <select id="round-wind">
-                  <option value="E">东风圈</option><option value="S">南风圈</option><option value="W">西风圈</option><option value="N">北风圈</option>
-                </select>
-              </label>
-              <label class="select-field">门风
-                <select id="seat-wind">
-                  <option value="E">东</option><option value="S">南</option><option value="W">西</option><option value="N">北</option>
-                </select>
-              </label>
-              <label class="select-field flower-field">花牌
-                <span class="number-control"><button type="button" data-step="-1" data-target="flower-count" aria-label="减少花牌">−</button><input id="flower-count" type="number" min="0" max="8" value="0" aria-label="花牌数量" /><button type="button" data-step="1" data-target="flower-count" aria-label="增加花牌">＋</button></span>
-              </label>
-            </div>
+        <section class="selected-section" aria-labelledby="selected-title">
+          <div class="section-title"><h2 id="selected-title">已选手牌</h2><span id="hand-state">最后一张是和牌</span></div>
+          <div class="selected-rack" id="selected-rack"></div>
+          <div class="meld-rack" id="meld-rack"></div>
+        </section>
 
-            <div class="check-grid" aria-label="和牌场况">
-              <label class="check-field"><input id="self-drawn" type="checkbox" /><span class="fake-check"></span><span>自摸</span></label>
-              <label class="check-field"><input id="last-tile" type="checkbox" /><span class="fake-check"></span><span>牌墙最后一张</span></label>
-              <label class="check-field"><input id="fourth-tile" type="checkbox" /><span class="fake-check"></span><span>和绝张</span></label>
-              <label class="check-field"><input id="after-kong" type="checkbox" /><span class="fake-check"></span><span>杠后和牌</span></label>
-              <label class="check-field"><input id="rob-kong" type="checkbox" /><span class="fake-check"></span><span>抢杠和</span></label>
-            </div>
-
-            <button class="primary-button" type="submit"><span>开始算番</span><b>→</b></button>
-            <p class="privacy-note"><span class="lock-icon">⌁</span> 不上传牌面，不建档；所有计算在此设备浏览器内完成。</p>
-          </form>
-
-          <section class="panel result-panel" aria-live="polite" aria-labelledby="result-title">
-            <div class="result-topline">
-              <div>
-                <p class="panel-kicker">03 / 结果</p>
-                <h2 id="result-title">当前方案</h2>
-              </div>
-              <span class="result-mode" id="result-mode">自动求解</span>
-            </div>
-            <div class="score-block">
-              <span class="score-label">总番数</span>
-              <div class="score-line"><strong id="result-total">—</strong><span>番</span></div>
-              <span class="score-state" id="result-state">等待输入</span>
-            </div>
-            <div class="result-divider"></div>
-            <div class="result-section">
-              <div class="result-section-title"><span>已计番种</span><span id="fan-count">0 项</span></div>
-              <div class="fan-breakdown" id="fan-breakdown"><p class="empty-result">输入一手完整和牌后，这里会列出每一项番。</p></div>
-            </div>
-            <div class="decomposition" id="decomposition-note"></div>
-            <div class="rule-callout" id="rule-callout"><span class="callout-mark">!</span><p>花牌每张 1 番，但不计入 8 番起和；起和判断会单独列出。</p></div>
-          </section>
-        </div>
-
-        <div class="definition-strip">
-          <div><span class="strip-number">A</span><p><strong>就高</strong><small>枚举合法拆解，选择番数最高的一组。</small></p></div>
-          <div><span class="strip-number">B</span><p><strong>排斥</strong><small>高番成立后，自动剔除被包含的低番。</small></p></div>
-          <div><span class="strip-number">C</span><p><strong>可复核</strong><small>每个结果都能回到番种表查看定义。</small></p></div>
-        </div>
+        <section class="result-section" aria-live="polite" aria-labelledby="result-title">
+          <div class="section-title"><h2 id="result-title">听牌结果</h2><span id="result-subtitle">补一张牌后自动计算</span></div>
+          <div class="result-content" id="result-content"></div>
+        </section>
       </section>
 
-      <section class="view catalog-view" id="catalog-view" data-view-panel="catalog" aria-labelledby="catalog-title" hidden>
-        <div class="section-heading catalog-heading">
-          <div>
-            <p class="eyebrow"><span class="eyebrow-rule"></span>番种索引 · 按分值排列</p>
-            <h1 id="catalog-title">81 种番，<em>一页查全。</em></h1>
-            <p class="lede">按 98 规则整理。点击任意番种可展开定义与常见排斥提示。</p>
-          </div>
-          <div class="catalog-meta"><strong>12</strong><span>个分值级别</span></div>
-        </div>
+      <section class="view catalog-view" data-view-panel="catalog" hidden aria-labelledby="catalog-title">
+        <header class="subpage-heading"><h2 id="catalog-title">81 番种表</h2><p>按番数整理，点击查看定义。</p></header>
         <div class="fan-catalog" id="fan-catalog"></div>
-        <div class="source-panel">
-          <div><p class="panel-kicker">规则与实现来源</p><h2>保持可追溯</h2></div>
-          <div class="source-links">
-            <a href="https://zh.wikisource.org/zh/中国麻将竞赛规则" target="_blank" rel="noreferrer">1998《中国麻将竞赛规则（试行）》<span>↗</span></a>
-            <a href="https://github.com/tziakcha-stats/gb-mahjong-js" target="_blank" rel="noreferrer">gb-mahjong-js · MIT 规则引擎<span>↗</span></a>
-          </div>
-          <p class="source-disclaimer">国标在 98、06、14 版本及不同赛事实践中存在复合计分争议。本工具默认 98 规则口径，复杂牌例请以赛事裁判法和当地规程为准。</p>
-        </div>
+      </section>
+
+      <section class="view guide-view" data-view-panel="guide" hidden aria-labelledby="guide-title">
+        <header class="subpage-heading"><h2 id="guide-title">用法</h2><p>从牌面开始，不必输入编码。</p></header>
+        <ol class="guide-steps">
+          <li><strong>先点牌</strong><span>点 13 张看听牌；点满 14 张，最后点的一张就是和牌。</span></li>
+          <li><strong>再补场况</strong><span>按实际情况选择副露、圈风、门风与和牌方式。</span></li>
+          <li><strong>看计算结果</strong><span>结果自动列出可胡牌与番种；点任一听牌可进入完整拆解。</span></li>
+        </ol>
+        <section class="guide-share" aria-label="分享入口">
+          <div><h3>电脑打开后，手机扫码继续点牌</h3><p id="share-url">正在生成地址</p></div>
+          <canvas id="share-qr" width="112" height="112" aria-label="当前地址二维码"></canvas>
+        </section>
+        <p class="guide-note">所有牌面和计算只在本机浏览器处理；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
       </section>
     </main>
 
-    <footer class="site-footer site-width"><span>国标麻将算番</span><span>牌面只留在当前浏览器</span><span>公开纯工具 · 商业未验证</span></footer>
+    <nav class="bottom-nav" aria-label="主导航">
+      <button type="button" class="bottom-nav-item is-active" data-view="calculator"><span class="nav-icon">⌂</span>算番</button>
+      <button type="button" class="bottom-nav-item" data-view="catalog"><span class="nav-icon">▤</span>番表</button>
+      <button type="button" class="bottom-nav-item" data-view="guide"><span class="nav-icon">◌</span>用法</button>
+    </nav>
     <script src="./app.js" defer></script>
   </body>
 </html>

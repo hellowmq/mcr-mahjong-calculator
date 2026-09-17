@@ -3,208 +3,201 @@ import constants from "gb-mahjong-js/lib/core/constants.js";
 import QRCode from "qrcode";
 import { FAN_POINTS, FANS } from "./fans.js";
 
-const FAN_BY_NAME = new Map(FANS.map((fan) => [fan.name, fan]));
-const SAMPLE_HAND = "123m123p123s789s东东";
-const HONORS = new Set(["东", "南", "西", "北", "中", "发", "白", "E", "S", "W", "N", "C", "F", "P"]);
-
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+const SUITS = ["m", "p", "s"];
+const HONORS = ["E", "S", "W", "N", "C", "F", "P"];
+const WIND_LABELS = { E: "东", S: "南", W: "西", N: "北" };
+const MODE_META = {
+  hand: { label: "立牌", need: 0 },
+  chi: { label: "吃", need: 3 },
+  peng: { label: "碰", need: 3 },
+  mingGang: { label: "明杠", need: 4 },
+  anGang: { label: "暗杠", need: 4 },
+};
+const TILES = [...SUITS.flatMap((suit) => Array.from({ length: 9 }, (_, index) => `${index + 1}${suit}`)), ...HONORS];
+const TILE_ORDER = new Map(TILES.map((code, index) => [code, index]));
+const SAMPLE_HAND = ["1m", "2m", "3m", "1p", "2p", "3p", "1s", "2s", "3s", "7s", "8s", "9s", "E"];
 
-function normalizeTiles(raw) {
-  return String(raw ?? "")
-    .replace(/[萬万]/g, "m")
-    .replace(/[筒饼餅]/g, "p")
-    .replace(/[条條索]/g, "s")
-    .replace(/[一壹]/g, "1")
-    .replace(/[二贰]/g, "2")
-    .replace(/[三叁]/g, "3")
-    .replace(/[四肆]/g, "4")
-    .replace(/[五伍]/g, "5")
-    .replace(/[六陆]/g, "6")
-    .replace(/[七柒]/g, "7")
-    .replace(/[八捌]/g, "8")
-    .replace(/[九玖]/g, "9")
-    .replace(/东/g, "E")
-    .replace(/南/g, "S")
-    .replace(/西/g, "W")
-    .replace(/北/g, "N")
-    .replace(/中/g, "C")
-    .replace(/发/g, "F")
-    .replace(/白/g, "P");
+const state = {
+  hand: [...SAMPLE_HAND], melds: [], draft: [], mode: "hand", flowers: 0, round: "E", seat: "E",
+  conditions: { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false },
+};
+
+function tileSvg(code) {
+  return `<svg class="tile-face" viewBox="0 0 64 88" aria-hidden="true"><use href="./mahjong-sprite.svg#tile-${code}"></use></svg>`;
 }
-
-function tileTokens(raw) {
-  const text = normalizeTiles(raw).replace(/[\s,[\]]/g, "");
-  const tokens = [];
-  let pending = "";
-  for (const char of text) {
-    if (/^[1-9]$/.test(char)) {
-      pending += char;
-      continue;
-    }
-    if (/^[mps]$/.test(char)) {
-      for (const digit of pending) tokens.push({ value: `${digit}${char}`, label: `${digit}${char === "m" ? "万" : char === "p" ? "筒" : "条"}`, honor: false });
-      pending = "";
-      continue;
-    }
-    if (HONORS.has(char)) {
-      if (pending) throw new Error("数字牌需要在数字后写 m、p 或 s");
-      const label = { E: "东", S: "南", W: "西", N: "北", C: "中", F: "发", P: "白" }[char] ?? char;
-      tokens.push({ value: char, label, honor: true });
-      continue;
-    }
-    if (char === "z") {
-      if (!pending) throw new Error("z 后需要 1–7 的字牌编号");
-      for (const digit of pending) {
-        const label = { 1: "东", 2: "南", 3: "西", 4: "北", 5: "中", 6: "发", 7: "白" }[digit];
-        if (!label) throw new Error("字牌编号只能是 1–7");
-        tokens.push({ value: digit, label, honor: true });
-      }
-      pending = "";
-      continue;
-    }
-    if (!/[0-9]/.test(char)) throw new Error(`无法识别字符：${char}`);
-  }
-  if (pending) throw new Error("最后一组数字缺少 m、p 或 s 花色");
-  return tokens;
+function tileLabel(code) {
+  if (HONORS.includes(code)) return { E: "东", S: "南", W: "西", N: "北", C: "中", F: "发", P: "白" }[code];
+  return `${code[0]}${{ m: "万", p: "筒", s: "条" }[code.at(-1)]}`;
 }
-
-function buildInput() {
-  const hand = normalizeTiles($("#hand-input").value).replace(/\s+/g, "");
-  const melds = normalizeTiles($("#meld-input").value).replace(/\s+/g, "");
-  const selfDrawn = $("#self-drawn").checked;
-  const lastTile = $("#last-tile").checked;
-  const fourthTile = $("#fourth-tile").checked;
-  const afterKong = $("#after-kong").checked;
-  const robKong = $("#rob-kong").checked;
-  if (!hand) throw new Error("请先输入立牌");
-  if (afterKong && robKong) throw new Error("“杠后和牌”和“抢杠和”不能同时选择");
-  if (afterKong && !selfDrawn) throw new Error("杠后开花应勾选“自摸”");
-  if (afterKong && lastTile) throw new Error("杠后开花与牌墙最后一张不能同时选择");
-  const flowers = Math.max(0, Math.min(8, Number($("#flower-count").value) || 0));
-  const round = $("#round-wind").value;
-  const seat = $("#seat-wind").value;
-  const context = `${round}${seat}${selfDrawn ? 1 : 0}${fourthTile ? 1 : 0}${lastTile ? 1 : 0}${afterKong || robKong ? 1 : 0}`;
-  return `${melds}${hand}|${context}|${flowers}`;
+function sortTiles(codes) { return [...codes].sort((left, right) => TILE_ORDER.get(left) - TILE_ORDER.get(right)); }
+function allPickedTiles() { return [...state.hand, ...state.draft, ...state.melds.flatMap((meld) => meld.tiles)]; }
+function countTile(code) { return allPickedTiles().filter((tile) => tile === code).length; }
+function selectedCount() { return state.hand.length + state.melds.reduce((sum, meld) => sum + meld.tiles.length, 0); }
+function tileButton(code) {
+  const count = countTile(code);
+  return `<button type="button" class="tile-button" data-tile="${code}" aria-label="${tileLabel(code)}，当前已有 ${count} 张"${count >= 4 ? " disabled" : ""}>${tileSvg(code)}</button>`;
 }
+function compactTiles(codes) {
+  const ordered = sortTiles(codes);
+  const suits = SUITS.map((suit) => {
+    const digits = ordered.filter((tile) => tile.endsWith(suit)).map((tile) => tile[0]).join("");
+    return digits ? `${digits}${suit}` : "";
+  }).join("");
+  return `${suits}${ordered.filter((tile) => HONORS.includes(tile)).join("")}`;
+}
+function meldDsl(meld) { return meld.type === "anGang" ? `[${compactTiles(meld.tiles)}]` : `[${compactTiles(meld.tiles)},1]`; }
+function buildInput(hand = state.hand) {
+  if (state.conditions.afterKong && state.conditions.robKong) throw new Error("杠上开花与抢杠和不能同时成立");
+  if (state.conditions.afterKong && !state.conditions.selfDrawn) throw new Error("杠上开花应同时勾选自摸");
+  if (state.conditions.afterKong && state.conditions.lastTile) throw new Error("杠上开花与海底捞月不能同时成立");
+  const winning = hand.at(-1);
+  if (!winning) throw new Error("请先选择和牌");
+  const context = `${state.round}${state.seat}${state.conditions.selfDrawn ? 1 : 0}${state.conditions.fourthTile ? 1 : 0}${state.conditions.lastTile ? 1 : 0}${state.conditions.afterKong || state.conditions.robKong ? 1 : 0}`;
+  return `${state.melds.map(meldDsl).join("")}${compactTiles(hand.slice(0, -1))}${winning}|${context}|${state.flowers}`;
+}
+function fanItems(result) {
+  return (result.fans ?? []).map((entry) => ({ name: constants.FAN_NAME[entry.fanId] ?? "未命名番种", points: entry.score ?? 0 }))
+    .sort((left, right) => right.points - left.points || left.name.localeCompare(right.name, "zh-CN"));
+}
+function coreTotal(result) { return fanItems(result).filter((fan) => fan.name !== "花牌").reduce((sum, fan) => sum + fan.points, 0); }
 
-function setPreview() {
-  const preview = $("#hand-preview");
+function renderPalette() {
+  $("#wan-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("m")).map(tileButton).join("");
+  $("#tong-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("p")).map(tileButton).join("");
+  $("#tiao-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("s")).map(tileButton).join("");
+  $("#honor-tiles").innerHTML = TILES.filter((tile) => HONORS.includes(tile)).map(tileButton).join("");
+}
+function renderWinds() {
+  const radio = (name, selected) => Object.entries(WIND_LABELS).map(([value, label]) => `<label><input type="radio" name="${name}" value="${value}"${selected === value ? " checked" : ""}/><span>${label}</span></label>`).join("");
+  $("#round-winds").innerHTML = radio("round", state.round);
+  $("#seat-winds").innerHTML = radio("seat", state.seat);
+}
+function renderDraft() {
+  const meta = MODE_META[state.mode];
+  $("#draft-bar").hidden = state.mode === "hand";
+  if (state.mode === "hand") return;
+  $("#draft-label").textContent = `组一副${meta.label} · ${state.draft.length}/${meta.need}`;
+  $("#draft-tiles").innerHTML = state.draft.map((tile) => `<span class="mini-tile">${tileSvg(tile)}</span>`).join("");
+  $("#confirm-draft").disabled = state.draft.length !== meta.need;
+}
+function renderHand() {
+  const total = selectedCount();
+  $("#selection-count").textContent = `${total} / 14`;
+  $("#selection-label").textContent = state.mode === "hand" ? "逐张点牌" : `正在录入${MODE_META[state.mode].label}`;
+  $("#hand-state").textContent = total === 13 ? "等待一张和牌" : total === 14 ? "最后一张是和牌" : `还差 ${Math.max(0, 13 - total)} 张`;
+  $("#selected-rack").innerHTML = state.hand.length
+    ? state.hand.map((tile, index) => `<button type="button" class="selected-tile${index === state.hand.length - 1 && total === 14 ? " is-winning" : ""}" data-remove-hand="${index}" aria-label="移除${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("")
+    : `<p class="empty-rack">从上方点选立牌</p>`;
+  $("#meld-rack").innerHTML = state.melds.map((meld, index) => `<div class="meld-group"><span>${MODE_META[meld.type].label}</span>${meld.tiles.map((tile) => `<i>${tileSvg(tile)}</i>`).join("")}<button type="button" data-remove-meld="${index}" aria-label="移除这副${MODE_META[meld.type].label}">×</button></div>`).join("");
+}
+function renderConditions() {
+  $("#flower-count").textContent = String(state.flowers);
+  $("#context-summary").textContent = `${WIND_LABELS[state.round]}风圈 · ${WIND_LABELS[state.seat]}风位 · 花牌 ${state.flowers}`;
+  $$('[data-condition]').forEach((input) => { input.checked = state.conditions[input.dataset.condition]; });
+}
+function resultCard(wait) {
+  const eligible = coreTotal(wait.result) >= 8;
+  return `<button type="button" class="wait-card${eligible ? "" : " is-low"}" data-promote-tile="${wait.tile}" aria-label="选择${tileLabel(wait.tile)}作为和牌，${wait.result.totalFan}番">${tileSvg(wait.tile)}<span><strong>${wait.result.totalFan}番</strong><small>${eligible ? "可和" : "不足 8 番"}</small></span></button>`;
+}
+function renderCompleted(result) {
+  const eligible = coreTotal(result) >= 8;
+  $("#result-title").textContent = result.isHu ? `${result.totalFan} 番` : "未构成和牌";
+  $("#result-subtitle").textContent = result.isHu ? (eligible ? "达到 8 番起和" : "未达到 8 番起和") : "检查牌数与副露";
+  $("#result-content").innerHTML = result.isHu
+    ? `<div class="fan-list">${fanItems(result).map((fan) => `<div><span>${fan.name}</span><strong>+${fan.points}</strong></div>`).join("")}</div><p class="result-note">${result.decomposition?.packs?.length ? "已选取番数最高的合法拆解。" : "特殊和型已按规则单独判断。"}</p>`
+    : `<p class="empty-result">这 14 张牌不能组成合法和牌；可点选已选牌移除后继续调整。</p>`;
+}
+function renderResults() {
+  const total = selectedCount();
   try {
-    const tokens = tileTokens($("#hand-input").value);
-    $("#hand-count").textContent = `${tokens.length} 张`;
-    preview.innerHTML = tokens.length
-      ? tokens.map((tile, index) => `<span class="tile-token${tile.honor ? " honor" : ""}${index === tokens.length - 1 ? " win" : ""}">${tile.label}</span>`).join("")
-      : `<span class="empty-result">等待牌面</span>`;
+    if (total === 13) {
+      const waits = TILES.filter((tile) => countTile(tile) < 4).flatMap((tile) => {
+        const result = countFan(buildInput([...state.hand, tile]));
+        return result.isHu ? [{ tile, result }] : [];
+      });
+      $("#result-title").textContent = waits.length ? `听 ${waits.length} 张牌` : "尚未听牌";
+      $("#result-subtitle").textContent = waits.length ? "点一张牌查看完整拆解" : "继续调整立牌或副露";
+      $("#result-content").innerHTML = waits.length ? `<div class="wait-list">${waits.map(resultCard).join("")}</div>` : `<p class="empty-result">当前 13 张牌还没有可和的进张。</p>`;
+      return;
+    }
+    if (total === 14) { renderCompleted(countFan(buildInput())); return; }
+    $("#result-title").textContent = total < 13 ? "继续点牌" : "牌数过多";
+    $("#result-subtitle").textContent = total < 13 ? `还差 ${13 - total} 张才可查听牌` : "请移除多余牌";
+    $("#result-content").innerHTML = `<p class="empty-result">${total < 13 ? "凑满 13 张会自动列出全部听牌。" : "完整牌面和副露合计应为 14 张。"}</p>`;
   } catch (error) {
-    $("#hand-count").textContent = "—";
-    preview.innerHTML = `<span class="empty-result">${escapeHtml(error.message)}</span>`;
+    $("#result-title").textContent = "无法计算";
+    $("#result-subtitle").textContent = "请检查当前场况";
+    $("#result-content").innerHTML = `<p class="empty-result">${escapeHtml(error.message)}</p>`;
   }
 }
-
-function renderResult(result, error = null) {
-  const total = $("#result-total");
-  const state = $("#result-state");
-  const breakdown = $("#fan-breakdown");
-  const fanCount = $("#fan-count");
-  const decomposition = $("#decomposition-note");
-  if (error || !result?.isHu) {
-    total.textContent = "—";
-    state.textContent = error?.message ?? "牌面未组成合法和牌";
-    state.classList.add("is-warn");
-    fanCount.textContent = "0 项";
-    breakdown.innerHTML = `<p class="empty-result">${escapeHtml(error?.message ?? "请检查张数、牌面结构与副露格式。")}</p>`;
-    decomposition.textContent = "";
-    return;
-  }
-  state.classList.remove("is-warn");
-  const fans = (result.fans ?? []).map((entry) => ({
-    name: constants.FAN_NAME[entry.fanId] ?? "未命名番种",
-    points: entry.score ?? 0,
-  })).sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "zh-CN"));
-  const coreTotal = fans.filter((fan) => fan.name !== "花牌").reduce((sum, fan) => sum + fan.points, 0);
-  total.textContent = String(result.totalFan ?? 0);
-  state.textContent = coreTotal >= 8 ? "达到 8 番起和" : "未达到 8 番起和";
-  fanCount.textContent = `${fans.length} 项`;
-  breakdown.innerHTML = fans.length ? fans.map((fan) => {
-    const meta = FAN_BY_NAME.get(fan.name);
-    return `<div class="fan-row"><span>${fan.name}${meta?.group ? `<small>${meta.group}</small>` : ""}</span><strong>+${fan.points}</strong></div>`;
-  }).join("") : `<p class="empty-result">没有可显示的番种。</p>`;
-  decomposition.textContent = result.decomposition?.packs?.length ? "已从合法拆解中选取番数最高的方案。" : "特殊和型已按规则单独判断。";
-}
-
-function calculate() {
-  try {
-    renderResult(countFan(buildInput()));
-  } catch (error) {
-    renderResult(null, error);
-  }
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-}
-
 function renderCatalog() {
   $("#fan-catalog").innerHTML = FAN_POINTS.map((points) => {
-    const group = FANS.filter((fan) => fan.points === points);
-    const cards = group.map((fan) => `<details class="fan-card"><summary>${fan.name}</summary><p>${fan.description}</p>${fan.excludes ? `<span class="excludes"><b>常见排斥：</b>${fan.excludes}</span>` : ""}</details>`).join("");
-    return `<section class="fan-group"><div><div class="fan-group-score"><strong>${points}</strong><span>番</span></div><p class="fan-group-label">${group[0].group} · ${group.length} 项</p></div><div class="fan-cards">${cards}</div></section>`;
+    const entries = FANS.filter((fan) => fan.points === points);
+    return `<section class="fan-group"><h3><strong>${points}</strong>番 <span>${entries.length} 项</span></h3><div>${entries.map((fan) => `<details><summary>${fan.name}</summary><p>${fan.description}</p>${fan.excludes ? `<small>常见排斥：${fan.excludes}</small>` : ""}</details>`).join("")}</div></section>`;
   }).join("");
 }
-
 async function renderShareCode() {
-  const urlElement = $("#share-url");
-  const noteElement = $("#share-note");
-  const canvas = $("#share-qr");
-  const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
-  const url = isHttp ? `${window.location.origin}${window.location.pathname}#calculator` : "http://本机内网地址:8080/";
-  urlElement.textContent = url;
-  noteElement.textContent = isHttp ? "扫码打开当前地址" : "请先通过 HTTP 静态服务打开本站";
+  const url = `${window.location.origin}${window.location.pathname}#calculator`;
+  $("#share-url").textContent = url;
+  try { await QRCode.toCanvas($("#share-qr"), url, { width: 112, margin: 0, color: { dark: "#172031", light: "#ffffff" }, errorCorrectionLevel: "M" }); }
+  catch { $("#share-url").textContent = "二维码生成失败，请复制当前地址"; }
+}
+function renderAll() { renderPalette(); renderWinds(); renderDraft(); renderHand(); renderConditions(); renderResults(); }
+function addTile(code) {
+  if (countTile(code) >= 4) return;
+  if (state.mode === "hand") { if (selectedCount() >= 14) return; state.hand.push(code); }
+  else if (state.draft.length < MODE_META[state.mode].need) state.draft.push(code);
+  renderAll();
+}
+function validateDraft() {
+  const { mode, draft } = state;
+  const numbers = draft.filter((tile) => !HONORS.includes(tile));
+  if (mode === "chi") {
+    if (numbers.length !== 3 || new Set(numbers.map((tile) => tile.at(-1))).size !== 1) throw new Error("吃牌必须是同一花色的三张顺子");
+    const values = numbers.map((tile) => Number(tile[0])).sort((a, b) => a - b);
+    if (values[1] !== values[0] + 1 || values[2] !== values[1] + 1) throw new Error("吃牌需要连续三张，例如 123 万");
+  } else if (new Set(draft).size !== 1) throw new Error(`${MODE_META[mode].label}需要同一张牌`);
+}
+function completeDraft() {
   try {
-    await QRCode.toCanvas(canvas, url, {
-      width: 96,
-      margin: 0,
-      color: { dark: "#111b26", light: "#f5eddf" },
-      errorCorrectionLevel: "M",
-    });
-  } catch (error) {
-    noteElement.textContent = "二维码生成失败，请复制地址";
-  }
+    if (state.draft.length !== MODE_META[state.mode].need) return;
+    if (selectedCount() + state.draft.length > 14) throw new Error("副露与立牌合计不能超过 14 张");
+    validateDraft();
+    state.melds.push({ type: state.mode, tiles: sortTiles(state.draft) });
+    state.draft = []; state.mode = "hand"; renderAll();
+  } catch (error) { $("#draft-label").textContent = error.message; }
 }
-
+function resetState() {
+  state.hand = []; state.melds = []; state.draft = []; state.mode = "hand"; state.flowers = 0; state.round = "E"; state.seat = "E";
+  state.conditions = { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false };
+  renderAll();
+}
+function loadSample() { resetState(); state.hand = [...SAMPLE_HAND]; renderAll(); setView("calculator"); }
 function setView(view) {
-  $$("[data-view-panel]").forEach((panel) => {
-    const visible = panel.dataset.viewPanel === view;
-    panel.hidden = !visible;
-    panel.classList.toggle("is-visible", visible);
-  });
-  $$(".view-tab").forEach((tab) => tab.classList.toggle("is-active", tab.dataset.view === view));
+  $$('[data-view-panel]').forEach((panel) => { panel.hidden = panel.dataset.viewPanel !== view; panel.classList.toggle("is-visible", panel.dataset.viewPanel === view); });
+  $$('[data-view]').forEach((button) => button.classList.toggle("is-active", button.dataset.view === view));
   if (window.location.hash !== `#${view}`) history.replaceState(null, "", `#${view}`);
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
+function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character])); }
 
-$("#calculator-form").addEventListener("submit", (event) => { event.preventDefault(); calculate(); });
-$("#hand-input").addEventListener("input", setPreview);
-$("#sample-button").addEventListener("click", () => {
-  $("#hand-input").value = SAMPLE_HAND;
-  $("#meld-input").value = "";
-  $("#self-drawn").checked = false;
-  $("#last-tile").checked = false;
-  $("#fourth-tile").checked = false;
-  $("#after-kong").checked = false;
-  $("#rob-kong").checked = false;
-  $("#flower-count").value = "0";
-  setPreview();
-  calculate();
+document.addEventListener("click", (event) => {
+  const tile = event.target.closest("[data-tile]"); if (tile) addTile(tile.dataset.tile);
+  const hand = event.target.closest("[data-remove-hand]"); if (hand) { state.hand.splice(Number(hand.dataset.removeHand), 1); renderAll(); }
+  const meld = event.target.closest("[data-remove-meld]"); if (meld) { state.melds.splice(Number(meld.dataset.removeMeld), 1); renderAll(); }
+  const wait = event.target.closest("[data-promote-tile]"); if (wait && selectedCount() === 13) { state.hand.push(wait.dataset.promoteTile); renderAll(); }
+  const mode = event.target.closest("[data-mode]"); if (mode) { state.mode = mode.dataset.mode; state.draft = []; renderAll(); }
+  const view = event.target.closest("[data-view]"); if (view) setView(view.dataset.view);
+  const flower = event.target.closest("[data-flower-step]"); if (flower) { state.flowers = Math.max(0, Math.min(8, state.flowers + Number(flower.dataset.flowerStep))); renderAll(); }
 });
-$$(`[data-step]`).forEach((button) => button.addEventListener("click", () => {
-  const input = $(`#${button.dataset.target}`);
-  input.value = Math.max(Number(input.min), Math.min(Number(input.max), Number(input.value) + Number(button.dataset.step)));
-}));
-$$(`[data-view]`).forEach((tab) => tab.addEventListener("click", () => setView(tab.dataset.view)));
-
-renderCatalog();
-setPreview();
-calculate();
-setView(window.location.hash === "#catalog" ? "catalog" : "calculator");
-renderShareCode();
+$("#reset-hand").addEventListener("click", resetState);
+$("#load-sample").addEventListener("click", loadSample);
+$("#cancel-draft").addEventListener("click", () => { state.draft = []; state.mode = "hand"; renderAll(); });
+$("#confirm-draft").addEventListener("click", completeDraft);
+$("#round-winds").addEventListener("change", (event) => { state.round = event.target.value; renderAll(); });
+$("#seat-winds").addEventListener("change", (event) => { state.seat = event.target.value; renderAll(); });
+$$('[data-condition]').forEach((input) => input.addEventListener("change", (event) => { state.conditions[event.target.dataset.condition] = event.target.checked; renderAll(); }));
+if (window.matchMedia("(min-width: 700px)").matches) $("#context-details").open = true;
+renderCatalog(); renderAll(); setView(["#catalog", "#guide"].includes(window.location.hash) ? window.location.hash.slice(1) : "calculator"); renderShareCode();
