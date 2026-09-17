@@ -7,6 +7,9 @@ const css = readFileSync("dist/styles.css", "utf8");
 for (const marker of ["国标麻将算番", "算番器", "番种表", "81 番种", "逐张点牌"]) {
   if (!html.includes(marker)) throw new Error(`missing HTML marker: ${marker}`);
 }
+if (!html.includes('id="tile-1m"') || !js.includes('href="#tile-')) {
+  throw new Error("离线麻将精灵没有内联到打包页");
+}
 
 if (!js.includes("gb-mahjong-js") && !js.includes("FanCalculator")) {
   throw new Error("bundled scoring engine marker is missing");

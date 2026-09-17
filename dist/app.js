@@ -6123,7 +6123,7 @@
     conditions: { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false }
   };
   function tileSvg(code) {
-    return `<svg class="tile-face" viewBox="0 0 64 88" aria-hidden="true"><use href="./mahjong-sprite.svg#tile-${code}"></use></svg>`;
+    return `<svg class="tile-face" viewBox="0 0 64 88" aria-hidden="true"><use href="#tile-${code}"></use></svg>`;
   }
   function tileLabel(code) {
     if (HONORS.includes(code)) return { E: "东", S: "南", W: "西", N: "北", C: "中", F: "发", P: "白" }[code];
