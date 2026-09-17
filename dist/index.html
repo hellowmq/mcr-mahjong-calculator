@@ -25,14 +25,13 @@
           <button type="button" class="reset-button" id="reset-hand">重置</button>
         </div>
 
-        <section class="tile-picker" aria-label="选择麻将牌">
-          <div class="tile-row"><span>万</span><div class="tile-grid" id="wan-tiles"></div></div>
-          <div class="tile-row"><span>筒</span><div class="tile-grid" id="tong-tiles"></div></div>
-          <div class="tile-row"><span>条</span><div class="tile-grid" id="tiao-tiles"></div></div>
-          <div class="tile-row honors"><span>字</span><div class="tile-grid" id="honor-tiles"></div></div>
+        <section class="selected-section" aria-labelledby="selected-title">
+          <div class="section-title"><h2 id="selected-title">已选手牌</h2><span id="hand-state">最后一张是和牌</span></div>
+          <div class="selected-rack" id="selected-rack"></div>
+          <div class="meld-rack" id="meld-rack"></div>
         </section>
 
-        <section class="action-section" aria-label="录入方式">
+        <section class="action-section" aria-label="选择方式与场况">
           <div class="action-tabs" role="tablist" aria-label="录入方式">
             <button type="button" class="action-tab is-active" data-mode="hand">立牌</button>
             <button type="button" class="action-tab" data-mode="chi">吃</button>
@@ -65,10 +64,11 @@
           </details>
         </section>
 
-        <section class="selected-section" aria-labelledby="selected-title">
-          <div class="section-title"><h2 id="selected-title">已选手牌</h2><span id="hand-state">最后一张是和牌</span></div>
-          <div class="selected-rack" id="selected-rack"></div>
-          <div class="meld-rack" id="meld-rack"></div>
+        <section class="tile-picker" aria-label="选择麻将牌">
+          <div class="tile-row"><span>万</span><div class="tile-grid" id="wan-tiles"></div></div>
+          <div class="tile-row"><span>筒</span><div class="tile-grid" id="tong-tiles"></div></div>
+          <div class="tile-row"><span>条</span><div class="tile-grid" id="tiao-tiles"></div></div>
+          <div class="tile-row honors"><span>字</span><div class="tile-grid" id="honor-tiles"></div></div>
         </section>
 
         <section class="result-section" aria-live="polite" aria-labelledby="result-title">
