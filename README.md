@@ -1,9 +1,9 @@
-# 国标麻将算番
+# MCR Mahjong Calculator
 
-纯前端国标麻将算番器与 81 番种表，按 1998 年《中国麻将竞赛规则（试行）》整理。无需后端、账号、数据库或运行时 API。
+面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。无需后端、账号、数据库或运行时 API。
 
 <p align="center">
-  <img src="docs/media/mobile-calculator.png" width="390" alt="国标麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
+  <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
 </p>
 
 > 预览图由构建后的离线页面在固定移动端视口中离屏渲染导出，不包含桌面、浏览器界面或用户牌局数据。
