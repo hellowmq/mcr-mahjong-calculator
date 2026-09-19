@@ -2,6 +2,8 @@
 
 面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。无需后端、账号、数据库或运行时 API。
 
+[在线使用](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [离线打开](dist/index.html)
+
 <p align="center">
   <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
 </p>
@@ -22,9 +24,22 @@
 ## 本地运行
 
 ```bash
-npm install
+npm ci
 npm run build
 python3 -m http.server 8080 --directory dist
 ```
 
+## 开发检查
+
+```bash
+npm run check
+npm run build
+```
+
+`check` 检查打包产物是否完整、关键内容与算番引擎标记是否存在、麻将精灵是否内联，以及是否意外引入运行时网络请求；它不代表完整牌局已经人工复核。
+
+## 依赖与许可
+
 计算核心使用 `gb-mahjong-js` 的 MIT 许可 JavaScript 规则层；说明见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。本站不使用后端、账号、数据库或运行时 API。
+
+本仓库当前未为项目自有代码和素材设置开源许可证。公开可见不等于授予再分发或派生权；第三方依赖仍各自遵循原许可。
