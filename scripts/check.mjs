@@ -39,7 +39,7 @@ if (!html.includes("广告与隐私") || !html.includes("Google 隐私权政策"
 if (manifest.scope !== "./" || manifest.start_url !== "./#calculator") {
   throw new Error("PWA manifest is not relative to the deployed project path");
 }
-if (!pwa.includes('register("./sw.js"') || !serviceWorker.includes('"./app.js"') || !serviceWorker.includes('"./index.html"')) {
+if (!pwa.includes('register("./sw.js"') || !serviceWorker.includes('"./app.js?v=20261007-tiles"') || !serviceWorker.includes('"./index.html"')) {
   throw new Error("PWA registration or offline shell is incomplete");
 }
 if (/fetch\s*\(|XMLHttpRequest|WebSocket/.test(js)) {
