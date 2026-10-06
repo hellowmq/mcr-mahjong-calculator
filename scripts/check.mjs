@@ -20,6 +20,12 @@ if (!js.includes("gb-mahjong-js") && !js.includes("FanCalculator")) {
 if (!html.includes('rel="manifest"') || !html.includes('src="./pwa.js"') || !html.includes('id="offline-status"')) {
   throw new Error("PWA entry points or offline status are missing from HTML");
 }
+if (!html.includes('location.hostname === "tech.wenmq.cn"') || !html.includes('client=ca-pub-5022811590872785') || !html.includes('data-ad-slot="1726092669"') || !html.includes('class="adsense-slot"')) {
+  throw new Error("AdSense script or calculator result ad unit is missing from HTML");
+}
+if (!html.includes("广告与隐私") || !html.includes("Google 隐私权政策")) {
+  throw new Error("AdSense privacy disclosure is missing from HTML");
+}
 if (manifest.scope !== "./" || manifest.start_url !== "./#calculator") {
   throw new Error("PWA manifest is not relative to the deployed project path");
 }

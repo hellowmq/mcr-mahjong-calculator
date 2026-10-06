@@ -1,6 +1,6 @@
 # MCR Mahjong Calculator
 
-面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。无需后端、账号、数据库或运行时 API。
+面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。算番无需本站后端、账号、数据库或运行时 API；在线时页面会连接 Google AdSense 加载广告，离线算番仍可使用。
 
 [ChatGPT 部署版](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [国内访问推荐](https://tech.wenmq.cn/mcr-mahjong-calculator/)
 

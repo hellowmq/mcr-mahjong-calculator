@@ -9,6 +9,15 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
+    <script>
+      if (location.hostname === "tech.wenmq.cn") {
+        const adsenseScript = document.createElement("script");
+        adsenseScript.async = true;
+        adsenseScript.crossOrigin = "anonymous";
+        adsenseScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5022811590872785";
+        document.head.append(adsenseScript);
+      }
+    </script>
   </head>
   <body>
     <svg class="sprite-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
@@ -115,6 +124,16 @@
           <div class="section-title"><h2 id="result-title">听牌结果</h2><span id="result-subtitle">补一张牌后自动计算</span></div>
           <div class="result-content" id="result-content"></div>
         </section>
+        <aside class="adsense-slot" aria-label="广告">
+          <span class="adsense-label">广告</span>
+          <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5022811590872785"
+            data-ad-slot="1726092669"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+          <script>if (location.hostname === "tech.wenmq.cn") (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </aside>
       </section>
 
       <section class="view catalog-view" data-view-panel="catalog" hidden aria-labelledby="catalog-title">
@@ -141,7 +160,11 @@
           <div><h3>电脑打开后，手机扫码继续点牌</h3><p id="share-url">正在生成地址</p></div>
           <canvas id="share-qr" width="112" height="112" aria-label="当前地址二维码"></canvas>
         </section>
-        <p class="guide-note">所有牌面和计算只在本机浏览器处理；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
+        <p class="guide-note">算番逻辑在本机浏览器运行；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
+        <section class="guide-privacy" aria-labelledby="ad-privacy-title">
+          <h3 id="ad-privacy-title">广告与隐私</h3>
+          <p>tech.wenmq.cn 上的本计算器使用 Google AdSense 展示广告。联网时浏览器会连接 Google 加载广告；牌局计算仍在本机完成，本项目没有牌局数据服务端。广告数据的处理方式请查看 <a href="https://policies.google.com/privacy?hl=zh-CN" target="_blank" rel="noopener noreferrer">Google 隐私权政策</a>。广告离线时不可用。</p>
+        </section>
       </section>
     </main>
 
