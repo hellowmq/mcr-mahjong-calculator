@@ -6107,7 +6107,8 @@
     chi: { label: "吃", need: 3 },
     peng: { label: "碰", need: 3 },
     mingGang: { label: "明杠", need: 4 },
-    anGang: { label: "暗杠", need: 4 }
+    anGang: { label: "暗杠", need: 4 },
+    jiaGang: { label: "加杠", need: 1 }
   };
   var TILES = [...SUITS.flatMap((suit) => Array.from({ length: 9 }, (_, index) => `${index + 1}${suit}`)), ...HONORS];
   var TILE_ORDER = new Map(TILES.map((code, index) => [code, index]));
@@ -6140,11 +6141,12 @@
     return allPickedTiles().filter((tile) => tile === code).length;
   }
   function selectedCount() {
-    return state.hand.length + state.melds.reduce((sum, meld) => sum + meld.tiles.length, 0);
+    return state.hand.length + state.melds.length * 3;
   }
   function tileButton(code) {
     const count = countTile(code);
-    return `<button type="button" class="tile-button" data-tile="${code}" aria-label="${tileLabel(code)}，当前已有 ${count} 张"${count >= 4 ? " disabled" : ""}>${tileSvg(code)}</button>`;
+    const kongAction = state.mode === "anGang" && count === 4 || state.mode === "jiaGang" && count === 4 && state.melds.some((meld) => meld.type === "peng" && meld.tiles[0] === code);
+    return `<button type="button" class="tile-button" data-tile="${code}" aria-label="${tileLabel(code)}，当前已有 ${count} 张"${count >= 4 && !kongAction ? " disabled" : ""}>${tileSvg(code)}</button>`;
   }
   function compactTiles(codes) {
     const ordered = sortTiles(codes);
@@ -6187,7 +6189,13 @@
     const meta = MODE_META[state.mode];
     $("#draft-bar").hidden = state.mode === "hand";
     if (state.mode === "hand") return;
-    $("#draft-label").textContent = state.draftError || (state.mode === "peng" ? "碰 · 点一张牌，自动录入三张" : `组一副${meta.label} · 选 ${state.draft.length}/${meta.need} 张，选满自动完成`);
+    const quickHint = {
+      peng: "碰 · 点一张牌，自动录入三张",
+      mingGang: "明杠 · 点一张牌，自动录入四张",
+      anGang: "暗杠 · 点一张牌，自动录入四张",
+      jiaGang: "加杠 · 点一张牌，升级已有碰"
+    }[state.mode];
+    $("#draft-label").textContent = state.draftError || (quickHint || `组一副${meta.label} · 选 ${state.draft.length}/${meta.need} 张，选满自动完成`);
     $("#draft-tiles").innerHTML = state.draft.map((tile, index) => `<button type="button" class="mini-tile" data-remove-draft="${index}" aria-label="撤回${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("");
   }
   function renderHand() {
@@ -6263,15 +6271,46 @@
     renderHand();
     renderConditions();
     renderResults();
+    $$("[data-mode]").forEach((button) => button.classList.toggle("is-active", button.dataset.mode === state.mode));
   }
   function addTile(code) {
-    if (state.mode === "peng") {
-      if (selectedCount() + 3 > 14) state.draftError = "副露与立牌合计不能超过 14 张";
-      else if (countTile(code) + 3 > 4) state.draftError = `现有${tileLabel(code)}数量不足以录入一副碰`;
-      else {
-        state.melds.push({ type: "peng", tiles: [code, code, code] });
-        state.mode = "hand";
-        state.draftError = "";
+    if (["peng", "mingGang", "anGang", "jiaGang"].includes(state.mode)) {
+      const mode = state.mode;
+      const copiesInHand = state.hand.filter((tile) => tile === code).length;
+      const matchingMelds = state.melds.filter((meld) => meld.tiles[0] === code);
+      const removeFromHand = (count) => {
+        for (let removed = 0; removed < count; removed += 1) state.hand.splice(state.hand.lastIndexOf(code), 1);
+      };
+      if (mode === "peng") {
+        if (selectedCount() + 3 > 14) state.draftError = "副露与立牌合计不能超过 14 张";
+        else if (countTile(code) + 3 > 4) state.draftError = `现有${tileLabel(code)}数量不足以录入一副碰`;
+        else {
+          state.melds.push({ type: "peng", tiles: [code, code, code] });
+          state.mode = "hand";
+          state.draftError = "";
+        }
+      } else if (mode === "jiaGang") {
+        const pengIndex = state.melds.findIndex((meld) => meld.type === "peng" && meld.tiles[0] === code);
+        if (pengIndex < 0) state.draftError = `没有${tileLabel(code)}的碰可升级`;
+        else if (matchingMelds.length !== 1 || copiesInHand > 1) state.draftError = "这张牌在其他副露或手牌中的数量不符合加杠";
+        else {
+          if (copiesInHand === 1) removeFromHand(1);
+          state.melds[pengIndex] = { type: "mingGang", tiles: [code, code, code, code] };
+          state.mode = "hand";
+          state.draftError = "";
+        }
+      } else {
+        const expectedHandCopies = mode === "anGang" ? 4 : 3;
+        const consumedCopies = Math.min(copiesInHand, expectedHandCopies);
+        if (matchingMelds.length) state.draftError = `已有${tileLabel(code)}副露，请使用加杠或移除原副露`;
+        else if (mode === "mingGang" && copiesInHand === 4) state.draftError = "明杠需有一张来自其他玩家的牌；四张手牌请选暗杠";
+        else if (selectedCount() - consumedCopies + 3 > 14) state.draftError = "副露与立牌合计不能超过 14 张";
+        else {
+          removeFromHand(consumedCopies);
+          state.melds.push({ type: mode, tiles: [code, code, code, code] });
+          state.mode = "hand";
+          state.draftError = "";
+        }
       }
     } else {
       if (countTile(code) >= 4) return;
@@ -6298,7 +6337,7 @@
   function completeDraft() {
     try {
       if (state.draft.length !== MODE_META[state.mode].need) return;
-      if (selectedCount() + state.draft.length > 14) throw new Error("副露与立牌合计不能超过 14 张");
+      if (selectedCount() + 3 > 14) throw new Error("副露与立牌合计不能超过 14 张");
       validateDraft();
       state.melds.push({ type: state.mode, tiles: sortTiles(state.draft) });
       state.draft = [];
