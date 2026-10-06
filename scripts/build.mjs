@@ -12,6 +12,9 @@ writeFileSync("dist/index.html", sourceHtml.replace("<!-- INLINE_SPRITE_DEFS -->
 copyFileSync("src/styles.css", "dist/styles.css");
 copyFileSync("src/favicon.svg", "dist/favicon.svg");
 copyFileSync("src/mahjong-sprite.svg", "dist/mahjong-sprite.svg");
+for (const path of ["manifest.webmanifest", "sw.js", "pwa.js", "icon-192.png", "icon-512.png"]) {
+  copyFileSync(`src/${path}`, `dist/${path}`);
+}
 
 await build({
   entryPoints: ["src/app.js"],

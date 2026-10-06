@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="纯前端国标麻将算番器与 81 番种表，逐张点牌，输入只在当前浏览器处理。" />
     <title>国标麻将算番器</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -89,6 +90,14 @@
           <li><strong>再补场况</strong><span>按实际情况选择副露、圈风、门风与和牌方式。</span></li>
           <li><strong>看计算结果</strong><span>结果自动列出可胡牌与番种；点任一听牌可进入完整拆解。</span></li>
         </ol>
+        <section class="guide-offline" aria-label="离线使用">
+          <div>
+            <h3>离线使用</h3>
+            <p id="offline-status" role="status" aria-live="polite">首次联网打开时会自动保存页面和算番资源，完成后可断网使用。</p>
+          </div>
+          <button id="install-app" type="button" hidden>安装到设备</button>
+          <p class="offline-hint">首次联网打开并看到“离线缓存已就绪”后，可断网使用。安装到主屏幕或应用列表是可选的。</p>
+        </section>
         <section class="guide-share" aria-label="分享入口">
           <div><h3>电脑打开后，手机扫码继续点牌</h3><p id="share-url">正在生成地址</p></div>
           <canvas id="share-qr" width="112" height="112" aria-label="当前地址二维码"></canvas>
@@ -103,5 +112,6 @@
       <button type="button" class="bottom-nav-item" data-view="guide"><span class="nav-icon">◌</span>用法</button>
     </nav>
     <script src="./app.js" defer></script>
+    <script src="./pwa.js" defer></script>
   </body>
 </html>
