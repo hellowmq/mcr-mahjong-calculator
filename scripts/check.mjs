@@ -17,8 +17,8 @@ for (const marker of ["和牌条件", "自摸", "抢杠和", "和绝张", "海�
 if (!html.includes('id="tile-1m"') || !js.includes('href="#tile-')) {
   throw new Error("离线麻将精灵没有内联到打包页");
 }
-if (!sprite.includes('id="tile-5m"') || !sprite.includes(">五</text>")) {
-  throw new Error("五万牌面字形应为五");
+if (!sprite.includes('id="tile-5m"') || !sprite.includes(">伍</text>")) {
+  throw new Error("五万牌面字形应为伍");
 }
 
 if (!js.includes("gb-mahjong-js") && !js.includes("FanCalculator")) {

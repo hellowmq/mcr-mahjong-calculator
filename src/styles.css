@@ -70,7 +70,7 @@ main { width:min(760px,100%); margin:0 auto; }
 .condition-toggles b { overflow:hidden; font-weight:500; text-overflow:ellipsis; }
 .context-rule-note { margin:9px 0 0; color:#ad775e; font-size:11px; line-height:1.55; }
 .selected-section,.result-section { padding:11px 0; border-bottom:1px solid var(--line); }
-.adsense-slot { margin:40px 0 0; padding:14px 0 0; border-top:1px solid var(--line); text-align:center; }
+.adsense-slot { max-width:100%; overflow:hidden; margin:40px 0 0; padding:14px 0 0; border-top:1px solid var(--line); text-align:center; }
 .adsense-label { display:block; margin-bottom:6px; color:var(--muted); font-size:11px; letter-spacing:.08em; }
 .adsense-slot .adsbygoogle { min-height:90px; }
 .section-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
