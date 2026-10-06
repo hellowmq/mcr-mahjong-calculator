@@ -2,7 +2,7 @@
 
 面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。无需后端、账号、数据库或运行时 API。
 
-[在线使用](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [离线打开](dist/index.html)
+[在线使用](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/)
 
 <p align="center">
   <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
@@ -15,11 +15,13 @@
 - 牌面：使用站内自制的单一 SVG 精灵库 `src/mahjong-sprite.svg`，按键、已选手牌与结果共用，不裁切或依赖第三方牌图资源。
 - 分享：用法页生成当前地址二维码；手机扫码后进入精简的移动工作台。
 
-## 离线直接打开
+## 离线使用
 
-下载或克隆仓库后，直接双击打开 [`dist/index.html`](dist/index.html) 即可使用；它是已打包的离线入口，支持 `file://` 协议。
+普通用户不需要下载或打开 HTML 文件：先在支持 Service Worker 的浏览器中联网打开[算番器](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/)，等待页面显示“离线缓存已就绪”，页面与算番资源就会保存在当前浏览器中。之后断网时，在同一浏览器重新打开这个网址即可使用。
 
-`src/index.html` 是开发源码，会引用未打包模块，不能作为直接打开的入口。
+也可以按需将网页安装到设备主屏幕或应用列表，之后从图标启动；安装不是离线使用的前提。若浏览器数据被清除，或浏览器回收了站点缓存，需要重新联网打开页面并等待缓存就绪。
+
+仓库中的 [`dist/index.html`](dist/index.html) 是可直接通过 `file://` 打开的单文件构建产物，适合下载仓库后本地使用；GitHub 上的文件预览显示的是 HTML 内容，不是普通用户使用在线算番器的离线方式。`src/index.html` 是开发源码，引用未打包模块，不能直接作为离线入口。
 
 ## 本地运行
 
