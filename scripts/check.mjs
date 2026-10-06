@@ -3,6 +3,7 @@ import { readFileSync, statSync } from "node:fs";
 const html = readFileSync("dist/index.html", "utf8");
 const js = readFileSync("dist/app.js", "utf8");
 const css = readFileSync("dist/styles.css", "utf8");
+const sprite = readFileSync("dist/mahjong-sprite.svg", "utf8");
 const pwa = readFileSync("dist/pwa.js", "utf8");
 const serviceWorker = readFileSync("dist/sw.js", "utf8");
 const manifest = JSON.parse(readFileSync("dist/manifest.webmanifest", "utf8"));
@@ -16,6 +17,9 @@ for (const marker of ["和牌条件", "自摸", "抢杠和", "和绝张", "海�
 if (!html.includes('id="tile-1m"') || !js.includes('href="#tile-')) {
   throw new Error("离线麻将精灵没有内联到打包页");
 }
+if (!sprite.includes('id="tile-5m"') || !sprite.includes(">五</text>")) {
+  throw new Error("五万牌面字形应为五");
+}
 
 if (!js.includes("gb-mahjong-js") && !js.includes("FanCalculator")) {
   throw new Error("bundled scoring engine marker is missing");
@@ -25,6 +29,9 @@ if (!html.includes('rel="manifest"') || !html.includes('src="./pwa.js"') || !htm
 }
 if (!html.includes('location.hostname === "tech.wenmq.cn"') || !html.includes('client=ca-pub-5022811590872785') || !html.includes('data-ad-slot="1726092669"') || !html.includes('class="adsense-slot"')) {
   throw new Error("AdSense script or calculator result ad unit is missing from HTML");
+}
+if (!html.includes('data-ad-status') || !html.includes('status === "unfilled"') || !html.includes('label.hidden = true')) {
+  throw new Error("empty AdSense placements must hide their label and slot");
 }
 if (!html.includes("广告与隐私") || !html.includes("Google 隐私权政策")) {
   throw new Error("AdSense privacy disclosure is missing from HTML");
