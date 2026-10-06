@@ -20,7 +20,7 @@ const TILE_ORDER = new Map(TILES.map((code, index) => [code, index]));
 const SAMPLE_HAND = ["1m", "2m", "3m", "1p", "2p", "3p", "1s", "2s", "3s", "7s", "8s", "9s", "E"];
 
 const state = {
-  hand: [...SAMPLE_HAND], melds: [], draft: [], mode: "hand", flowers: 0, round: "E", seat: "E",
+  hand: [], melds: [], draft: [], draftError: "", mode: "hand", flowers: 0, round: "E", seat: "E",
   conditions: { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false },
 };
 
@@ -78,9 +78,10 @@ function renderDraft() {
   const meta = MODE_META[state.mode];
   $("#draft-bar").hidden = state.mode === "hand";
   if (state.mode === "hand") return;
-  $("#draft-label").textContent = `组一副${meta.label} · ${state.draft.length}/${meta.need}`;
-  $("#draft-tiles").innerHTML = state.draft.map((tile) => `<span class="mini-tile">${tileSvg(tile)}</span>`).join("");
-  $("#confirm-draft").disabled = state.draft.length !== meta.need;
+  $("#draft-label").textContent = state.draftError || (state.mode === "peng"
+    ? "碰 · 点一张牌，自动录入三张"
+    : `组一副${meta.label} · 选 ${state.draft.length}/${meta.need} 张，选满自动完成`);
+  $("#draft-tiles").innerHTML = state.draft.map((tile, index) => `<button type="button" class="mini-tile" data-remove-draft="${index}" aria-label="撤回${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("");
 }
 function renderHand() {
   const total = selectedCount();
@@ -146,9 +147,23 @@ async function renderShareCode() {
 }
 function renderAll() { renderPalette(); renderWinds(); renderDraft(); renderHand(); renderConditions(); renderResults(); }
 function addTile(code) {
-  if (countTile(code) >= 4) return;
-  if (state.mode === "hand") { if (selectedCount() >= 14) return; state.hand.push(code); }
-  else if (state.draft.length < MODE_META[state.mode].need) state.draft.push(code);
+  if (state.mode === "peng") {
+    if (selectedCount() + 3 > 14) state.draftError = "副露与立牌合计不能超过 14 张";
+    else if (countTile(code) + 3 > 4) state.draftError = `现有${tileLabel(code)}数量不足以录入一副碰`;
+    else {
+      state.melds.push({ type: "peng", tiles: [code, code, code] });
+      state.mode = "hand";
+      state.draftError = "";
+    }
+  } else {
+    if (countTile(code) >= 4) return;
+    if (state.mode === "hand") { if (selectedCount() >= 14) return; state.hand.push(code); }
+    else if (state.draft.length < MODE_META[state.mode].need) {
+      state.draft.push(code);
+      state.draftError = "";
+      if (state.draft.length === MODE_META[state.mode].need) completeDraft();
+    }
+  }
   renderAll();
 }
 function validateDraft() {
@@ -166,11 +181,11 @@ function completeDraft() {
     if (selectedCount() + state.draft.length > 14) throw new Error("副露与立牌合计不能超过 14 张");
     validateDraft();
     state.melds.push({ type: state.mode, tiles: sortTiles(state.draft) });
-    state.draft = []; state.mode = "hand"; renderAll();
-  } catch (error) { $("#draft-label").textContent = error.message; }
+    state.draft = []; state.draftError = ""; state.mode = "hand";
+  } catch (error) { state.draftError = `${error.message}；点已选牌可撤回`; }
 }
 function resetState() {
-  state.hand = []; state.melds = []; state.draft = []; state.mode = "hand"; state.flowers = 0; state.round = "E"; state.seat = "E";
+  state.hand = []; state.melds = []; state.draft = []; state.draftError = ""; state.mode = "hand"; state.flowers = 0; state.round = "E"; state.seat = "E";
   state.conditions = { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false };
   renderAll();
 }
@@ -188,14 +203,13 @@ document.addEventListener("click", (event) => {
   const hand = event.target.closest("[data-remove-hand]"); if (hand) { state.hand.splice(Number(hand.dataset.removeHand), 1); renderAll(); }
   const meld = event.target.closest("[data-remove-meld]"); if (meld) { state.melds.splice(Number(meld.dataset.removeMeld), 1); renderAll(); }
   const wait = event.target.closest("[data-promote-tile]"); if (wait && selectedCount() === 13) { state.hand.push(wait.dataset.promoteTile); renderAll(); }
-  const mode = event.target.closest("[data-mode]"); if (mode) { state.mode = mode.dataset.mode; state.draft = []; renderAll(); }
+  const draft = event.target.closest("[data-remove-draft]"); if (draft) { state.draft.splice(Number(draft.dataset.removeDraft), 1); state.draftError = ""; renderAll(); }
+  const mode = event.target.closest("[data-mode]"); if (mode) { state.mode = mode.dataset.mode; state.draft = []; state.draftError = ""; renderAll(); }
   const view = event.target.closest("[data-view]"); if (view) setView(view.dataset.view);
   const flower = event.target.closest("[data-flower-step]"); if (flower) { state.flowers = Math.max(0, Math.min(8, state.flowers + Number(flower.dataset.flowerStep))); renderAll(); }
 });
 $("#reset-hand").addEventListener("click", resetState);
 $("#load-sample").addEventListener("click", loadSample);
-$("#cancel-draft").addEventListener("click", () => { state.draft = []; state.mode = "hand"; renderAll(); });
-$("#confirm-draft").addEventListener("click", completeDraft);
 $("#round-winds").addEventListener("change", (event) => { state.round = event.target.value; renderAll(); });
 $("#seat-winds").addEventListener("change", (event) => { state.seat = event.target.value; renderAll(); });
 $$('[data-condition]').forEach((input) => input.addEventListener("change", (event) => { state.conditions[event.target.dataset.condition] = event.target.checked; renderAll(); }));

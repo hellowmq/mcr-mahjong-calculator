@@ -42,10 +42,8 @@ main { width:min(760px,100%); margin:0 auto; }
 .draft-bar { display:flex; align-items:center; gap:7px; min-height:56px; margin-top:12px; padding:7px; border:1px solid #bed8ff; border-radius:7px; background:var(--blue-soft); }
 .draft-bar > span { flex:0 0 auto; color:#2864ae; font-size:12px; font-weight:700; }
 .draft-tiles { display:flex; flex:1; min-width:0; gap:3px; overflow:hidden; }
-.mini-tile { width:25px; flex:0 0 25px; border-width:1px; border-radius:3px; }
-.quiet-button,.confirm-button { flex:0 0 auto; min-height:32px; padding:0 8px; border-radius:4px; font-size:12px; font-weight:650; }
-.quiet-button { border:1px solid #b8c7d9; background:#fff; color:var(--muted); }
-.confirm-button { border:1px solid var(--blue); background:var(--blue); color:#fff; }
+.mini-tile { width:25px; flex:0 0 25px; padding:0; border-width:1px; border-radius:3px; cursor:pointer; }
+.mini-tile:hover { border-color:#d64545; }
 .condition-grid { display:grid; grid-template-columns:1fr 1fr 1.1fr; gap:10px; margin-top:8px; }
 .wind-set { min-width:0; margin:0; padding:0; border:0; }
 .wind-set legend,.flower-control > span { margin-bottom:8px; padding:0; color:var(--muted); font-size:12px; }
