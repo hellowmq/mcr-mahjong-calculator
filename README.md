@@ -2,7 +2,7 @@
 
 面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。无需后端、账号、数据库或运行时 API。
 
-[在线使用](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [GitHub Pages 镜像](https://tech.wenmq.cn/mcr-mahjong-calculator/)
+[ChatGPT 部署版](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [国内访问推荐](https://tech.wenmq.cn/mcr-mahjong-calculator/)
 
 <p align="center">
   <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
@@ -17,11 +17,11 @@
 
 ## 离线使用
 
-普通用户不需要下载或打开 HTML 文件：先在支持 Service Worker 的浏览器中联网打开上面的任一版本，等待页面显示“离线缓存已就绪”，页面与算番资源就会保存在当前浏览器中。Sites 在线版与 GitHub Pages 镜像分别缓存；之后断网时，请在同一浏览器重新打开首次缓存的那个网址。
+普通用户不需要下载或打开 HTML 文件：先在支持 Service Worker 的浏览器中联网打开准备使用的入口，等待页面显示“离线缓存已就绪”，页面与算番资源就会保存在当前浏览器中。两种入口的缓存分别保存；之后断网时，请在同一浏览器重新打开首次联网使用的那个入口。
 
 也可以按需将网页安装到设备主屏幕或应用列表，之后从图标启动；安装不是离线使用的前提。若浏览器数据被清除，或浏览器回收了站点缓存，需要重新联网打开页面并等待缓存就绪。
 
-仓库中的 `dist/` 是供 GitHub Pages 和其他静态托管使用的构建产物；在 GitHub 源码页面打开 `dist/index.html` 只会查看文件内容，不会运行算番器。普通用户请使用上面的在线版本，首次联网缓存后即可离线打开。`src/index.html` 是开发源码，不是用户入口。
+仓库中的 `dist/` 是部署构建产物；在源码页面打开 `dist/index.html` 只会查看 HTML 内容，不会运行算番器。普通用户请使用上面的任一入口，首次联网缓存后即可离线打开。`src/index.html` 是开发源码，不是用户入口。
 
 ## 本地运行
 
