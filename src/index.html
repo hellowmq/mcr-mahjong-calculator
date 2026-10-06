@@ -7,6 +7,7 @@
     <meta name="description" content="纯前端国标麻将算番器与 81 番种表，逐张点牌，输入只在当前浏览器处理。" />
     <title>国标麻将算番器</title>
     <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
     <script>
@@ -55,21 +56,23 @@
             <span id="draft-label">选牌后自动完成</span>
             <div class="draft-tiles" id="draft-tiles"></div>
           </div>
-          <details class="context-details" id="context-details">
-            <summary><strong>场况</strong><span id="context-summary">东风圈 · 东风位 · 花牌 0</span></summary>
+          <details class="context-details" id="context-details" open>
+            <summary><strong>场况与特殊和法</strong><span id="context-summary">东风圈 · 东风位 · 点和 · 花牌 0</span></summary>
             <div class="context-content">
               <div class="condition-grid">
                 <fieldset class="wind-set"><legend>圈风</legend><div id="round-winds"></div></fieldset>
                 <fieldset class="wind-set"><legend>门风</legend><div id="seat-winds"></div></fieldset>
                 <div class="flower-control"><span>花牌</span><button type="button" data-flower-step="-1" aria-label="减少花牌">−</button><strong id="flower-count">0</strong><button type="button" data-flower-step="1" aria-label="增加花牌">＋</button></div>
               </div>
-              <div class="condition-toggles" aria-label="和牌条件">
-                <label><input type="checkbox" data-condition="selfDrawn" /><span></span>自摸</label>
-                <label><input type="checkbox" data-condition="lastTile" /><span></span>海底捞月</label>
-                <label><input type="checkbox" data-condition="fourthTile" /><span></span>和绝张</label>
-                <label><input type="checkbox" data-condition="afterKong" /><span></span>杠上开花</label>
-                <label><input type="checkbox" data-condition="robKong" /><span></span>抢杠和</label>
-              </div>
+              <fieldset class="context-options"><legend>和牌条件</legend>
+                <div class="condition-toggles" aria-label="和牌条件">
+                  <label><input type="checkbox" data-context-flag="selfDrawn" /><span></span><b>自摸</b></label>
+                  <label><input type="checkbox" data-context-flag="fourthTile" /><span></span><b>和绝张</b></label>
+                  <label><input type="checkbox" data-context-flag="gang" /><span></span><b id="gang-label">抢杠和</b></label>
+                  <label><input type="checkbox" data-context-flag="lastTile" /><span></span><b id="last-tile-label">海底捞月（末张点和）</b></label>
+                </div>
+                <p class="context-rule-note" id="context-rule-note" hidden></p>
+              </fieldset>
             </div>
           </details>
         </section>
@@ -85,7 +88,7 @@
           <div class="section-title"><h2 id="result-title">听牌结果</h2><span id="result-subtitle">补一张牌后自动计算</span></div>
           <div class="result-content" id="result-content"></div>
         </section>
-        <aside class="adsense-slot" aria-label="广告">
+        <aside class="adsense-slot" aria-label="广告" hidden>
           <span class="adsense-label">广告</span>
           <ins class="adsbygoogle"
             style="display:block"
@@ -93,7 +96,12 @@
             data-ad-slot="1726092669"
             data-ad-format="auto"
             data-full-width-responsive="true"></ins>
-          <script>if (location.hostname === "tech.wenmq.cn") (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+          <script>
+            if (location.hostname === "tech.wenmq.cn") {
+              document.currentScript.closest(".adsense-slot").hidden = false;
+              (window.adsbygoogle = window.adsbygoogle || []).push({});
+            }
+          </script>
         </aside>
       </section>
 
@@ -106,16 +114,17 @@
         <header class="subpage-heading"><h2 id="guide-title">用法</h2><p>从牌面开始，不必输入编码。</p></header>
         <ol class="guide-steps">
           <li><strong>先点牌</strong><span>点 13 张看听牌；点满 14 张，最后点的一张就是和牌。</span></li>
-          <li><strong>再补场况</strong><span>按实际情况选择副露、圈风、门风与和牌方式。</span></li>
+          <li><strong>再补场况</strong><span>按实际情况选择副露、圈风、门风与和牌条件；未勾“自摸”时默认为点和。</span></li>
           <li><strong>看计算结果</strong><span>结果自动列出可胡牌与番种；点任一听牌可进入完整拆解。</span></li>
         </ol>
+        <p class="guide-note">末张自摸按“妙手回春”计算，末张点和按“海底捞月”计算；抢杠和不与和绝张同时计。单钓将、七对等手中已有同张牌的和法，会自动排除不可能成立的和绝张或抢杠和。</p>
         <section class="guide-offline" aria-label="离线使用">
           <div>
             <h3>离线使用</h3>
             <p id="offline-status" role="status" aria-live="polite">首次联网打开时会自动保存页面和算番资源，完成后可断网使用。</p>
           </div>
           <button id="install-app" type="button" hidden>安装到设备</button>
-          <p class="offline-hint">首次联网打开并看到“离线缓存已就绪”后，可断网使用。安装到主屏幕或应用列表是可选的。</p>
+          <p class="offline-hint">iPhone/iPad：在 Safari 分享菜单中选择“添加到主屏幕”。电脑或 Android：使用浏览器菜单安装。</p>
         </section>
         <section class="guide-share" aria-label="分享入口">
           <div><h3>电脑打开后，手机扫码继续点牌</h3><p id="share-url">正在生成地址</p></div>
@@ -124,7 +133,7 @@
         <p class="guide-note">算番逻辑在本机浏览器运行；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
         <section class="guide-privacy" aria-labelledby="ad-privacy-title">
           <h3 id="ad-privacy-title">广告与隐私</h3>
-          <p>tech.wenmq.cn 上的本计算器使用 Google AdSense 展示广告。联网时浏览器会连接 Google 加载广告；牌局计算仍在本机完成，本项目没有牌局数据服务端。广告数据的处理方式请查看 <a href="https://policies.google.com/privacy?hl=zh-CN" target="_blank" rel="noopener noreferrer">Google 隐私权政策</a>。广告离线时不可用。</p>
+          <p>仅 tech.wenmq.cn 上的本计算器使用 Google AdSense 展示广告。联网时浏览器会连接 Google 加载广告；牌局计算仍在本机完成，本项目没有牌局数据服务端。广告数据的处理方式请查看 <a href="https://policies.google.com/privacy?hl=zh-CN" target="_blank" rel="noopener noreferrer">Google 隐私权政策</a>。广告离线时不可用。</p>
         </section>
       </section>
     </main>

@@ -2,6 +2,7 @@ import { countFan } from "gb-mahjong-js/lib/api/index.js";
 import constants from "gb-mahjong-js/lib/core/constants.js";
 import QRCode from "qrcode";
 import { FAN_POINTS, FANS } from "./fans.js";
+import { WinContextError, createWinContext, encodeWinContext, gangLabel, lastTileLabel, normalizeWinContext, validateWinContext, validateWinContextSetup } from "./win-context.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -22,7 +23,7 @@ const SAMPLE_HAND = ["1m", "2m", "3m", "1p", "2p", "3p", "1s", "2s", "3s", "7s",
 
 const state = {
   hand: [], melds: [], draft: [], draftError: "", mode: "hand", flowers: 0, round: "E", seat: "E",
-  conditions: { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false },
+  winContext: createWinContext(),
 };
 
 function tileSvg(code) {
@@ -51,13 +52,10 @@ function compactTiles(codes) {
   return `${suits}${ordered.filter((tile) => HONORS.includes(tile)).join("")}`;
 }
 function meldDsl(meld) { return meld.type === "anGang" ? `[${compactTiles(meld.tiles)}]` : `[${compactTiles(meld.tiles)},1]`; }
-function buildInput(hand = state.hand) {
-  if (state.conditions.afterKong && state.conditions.robKong) throw new Error("杠上开花与抢杠和不能同时成立");
-  if (state.conditions.afterKong && !state.conditions.selfDrawn) throw new Error("杠上开花应同时勾选自摸");
-  if (state.conditions.afterKong && state.conditions.lastTile) throw new Error("杠上开花与海底捞月不能同时成立");
+function buildInput(hand = state.hand, winContext = state.winContext) {
+  validateWinContext({ context: winContext, hand, melds: state.melds });
   const winning = hand.at(-1);
-  if (!winning) throw new Error("请先选择和牌");
-  const context = `${state.round}${state.seat}${state.conditions.selfDrawn ? 1 : 0}${state.conditions.fourthTile ? 1 : 0}${state.conditions.lastTile ? 1 : 0}${state.conditions.afterKong || state.conditions.robKong ? 1 : 0}`;
+  const context = encodeWinContext(state.round, state.seat, winContext);
   return `${state.melds.map(meldDsl).join("")}${compactTiles(hand.slice(0, -1))}${winning}|${context}|${state.flowers}`;
 }
 function fanItems(result) {
@@ -102,8 +100,60 @@ function renderHand() {
 }
 function renderConditions() {
   $("#flower-count").textContent = String(state.flowers);
-  $("#context-summary").textContent = `${WIND_LABELS[state.round]}风圈 · ${WIND_LABELS[state.seat]}风位 · 花牌 ${state.flowers}`;
-  $$('[data-condition]').forEach((input) => { input.checked = state.conditions[input.dataset.condition]; });
+  const availability = contextAvailability();
+  const extras = [state.winContext.selfDrawn ? "自摸" : "点和"];
+  if (state.winContext.gang) extras.push(gangLabel(state.winContext));
+  if (state.winContext.lastTile) extras.push(lastTileLabel(state.winContext).split("（")[0]);
+  if (state.winContext.fourthTile) extras.push("和绝张");
+  $("#context-summary").textContent = `${WIND_LABELS[state.round]}风圈 · ${WIND_LABELS[state.seat]}风位 · ${extras.join(" · ")} · 花牌 ${state.flowers}`;
+  $$('[data-context-flag]').forEach((input) => {
+    input.checked = state.winContext[input.dataset.contextFlag];
+    const flag = input.dataset.contextFlag;
+    const blockedByRobKong = state.winContext.gang && !state.winContext.selfDrawn && ["lastTile", "fourthTile"].includes(flag);
+    const blockedGang = flag === "gang" && (
+      (state.winContext.selfDrawn && !availability.hasOwnKong)
+      || (!state.winContext.selfDrawn && (state.winContext.lastTile || state.winContext.fourthTile || !availability.canRobKong))
+    );
+    const blockedFourthTile = flag === "fourthTile" && !availability.canFourthTile;
+    input.disabled = !input.checked && (blockedByRobKong || blockedGang || blockedFourthTile);
+    input.closest("label")?.classList.toggle("is-disabled", input.disabled);
+  });
+  $("#last-tile-label").textContent = lastTileLabel(state.winContext);
+  $("#gang-label").textContent = gangLabel(state.winContext);
+  const notes = [];
+  if (state.winContext.gang && !state.winContext.selfDrawn) notes.push("抢杠和属于点和，不与末张或和绝张同时计算");
+  else if (state.winContext.selfDrawn && !availability.hasOwnKong) notes.push("先录入一副明杠或暗杠，才可选择杠上开花");
+  else if (!state.winContext.selfDrawn && (state.winContext.lastTile || state.winContext.fourthTile)) notes.push("末张或和绝张已选中；取消后才可选择抢杠和");
+  if (!availability.canFourthTile) notes.push("当前已知和牌进张不能成立和绝张");
+  if (!state.winContext.selfDrawn && !availability.canRobKong) notes.push("当前已知和牌进张不能成立抢杠和");
+  $("#context-rule-note").textContent = notes.join("；");
+  $("#context-rule-note").hidden = notes.length === 0;
+}
+
+function naturalWinningHands() {
+  const total = selectedCount();
+  const neutralContext = createWinContext();
+  if (total === 14) {
+    try { return countFan(buildInput(state.hand, neutralContext)).isHu ? [state.hand] : []; }
+    catch { return []; }
+  }
+  if (total !== 13) return [];
+  return TILES.filter((tile) => countTile(tile) < 4).flatMap((tile) => {
+    const hand = [...state.hand, tile];
+    try { return countFan(buildInput(hand, neutralContext)).isHu ? [hand] : []; }
+    catch { return []; }
+  });
+}
+
+function contextAvailability() {
+  const winningHands = naturalWinningHands();
+  const resolved = winningHands.length > 0;
+  const ownMeldTiles = state.melds.flatMap((meld) => meld.tiles);
+  return {
+    hasOwnKong: state.melds.some((meld) => meld.type === "mingGang" || meld.type === "anGang"),
+    canFourthTile: !resolved || winningHands.some((hand) => !hand.slice(0, -1).includes(hand.at(-1))),
+    canRobKong: !resolved || winningHands.some((hand) => ![...hand.slice(0, -1), ...ownMeldTiles].includes(hand.at(-1))),
+  };
 }
 function resultCard(wait) {
   const eligible = coreTotal(wait.result) >= 8;
@@ -121,13 +171,34 @@ function renderResults() {
   const total = selectedCount();
   try {
     if (total === 13) {
+      validateWinContextSetup({ context: state.winContext, melds: state.melds });
+      const neutralContext = createWinContext();
+      const invalidWaits = [];
       const waits = TILES.filter((tile) => countTile(tile) < 4).flatMap((tile) => {
-        const result = countFan(buildInput([...state.hand, tile]));
-        return result.isHu ? [{ tile, result }] : [];
+        const hand = [...state.hand, tile];
+        const baseResult = countFan(buildInput(hand, neutralContext));
+        if (!baseResult.isHu) return [];
+        try {
+          const result = countFan(buildInput(hand));
+          return result.isHu ? [{ tile, result }] : [];
+        } catch (error) {
+          if (error instanceof WinContextError) {
+            invalidWaits.push({ tile, message: error.message });
+            return [];
+          }
+          throw error;
+        }
       });
+      if (!waits.length && invalidWaits.length) {
+        const reasons = [...new Set(invalidWaits.map((wait) => wait.message))];
+        $("#result-title").textContent = "所选场况不成立";
+        $("#result-subtitle").textContent = "牌型已听，但与和牌方式冲突";
+        $("#result-content").innerHTML = `<p class="empty-result">${reasons.map(escapeHtml).join("；")}</p>`;
+        return;
+      }
       $("#result-title").textContent = waits.length ? `听 ${waits.length} 张牌` : "尚未听牌";
-      $("#result-subtitle").textContent = waits.length ? "点一张牌查看完整拆解" : "继续调整立牌或副露";
-      $("#result-content").innerHTML = waits.length ? `<div class="wait-list">${waits.map(resultCard).join("")}</div>` : `<p class="empty-result">当前 13 张牌还没有可和的进张。</p>`;
+      $("#result-subtitle").textContent = waits.length ? (invalidWaits.length ? `另有 ${invalidWaits.length} 张进张不符合所选场况` : "点一张牌查看完整拆解") : "继续调整立牌或副露";
+      $("#result-content").innerHTML = waits.length ? `<div class="wait-list">${waits.map(resultCard).join("")}</div>${invalidWaits.length ? `<p class="result-note">已按当前和牌方式排除：${invalidWaits.map((wait) => tileLabel(wait.tile)).join("、")}。</p>` : ""}` : `<p class="empty-result">当前 13 张牌还没有可和的进张。</p>`;
       return;
     }
     if (total === 14) { renderCompleted(countFan(buildInput())); return; }
@@ -226,7 +297,7 @@ function completeDraft() {
 }
 function resetState() {
   state.hand = []; state.melds = []; state.draft = []; state.draftError = ""; state.mode = "hand"; state.flowers = 0; state.round = "E"; state.seat = "E";
-  state.conditions = { selfDrawn: false, lastTile: false, fourthTile: false, afterKong: false, robKong: false };
+  state.winContext = createWinContext();
   renderAll();
 }
 function loadSample() { resetState(); state.hand = [...SAMPLE_HAND]; renderAll(); setView("calculator"); }
@@ -252,6 +323,8 @@ $("#reset-hand").addEventListener("click", resetState);
 $("#load-sample").addEventListener("click", loadSample);
 $("#round-winds").addEventListener("change", (event) => { state.round = event.target.value; renderAll(); });
 $("#seat-winds").addEventListener("change", (event) => { state.seat = event.target.value; renderAll(); });
-$$('[data-condition]').forEach((input) => input.addEventListener("change", (event) => { state.conditions[event.target.dataset.condition] = event.target.checked; renderAll(); }));
-if (window.matchMedia("(min-width: 700px)").matches) $("#context-details").open = true;
+$$('[data-context-flag]').forEach((input) => input.addEventListener("change", (event) => {
+  state.winContext = normalizeWinContext(state.winContext, { [event.target.dataset.contextFlag]: event.target.checked });
+  renderAll();
+}));
 renderCatalog(); renderAll(); setView(["#catalog", "#guide"].includes(window.location.hash) ? window.location.hash.slice(1) : "calculator"); renderShareCode();

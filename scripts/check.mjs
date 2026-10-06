@@ -10,6 +10,9 @@ const manifest = JSON.parse(readFileSync("dist/manifest.webmanifest", "utf8"));
 for (const marker of ["国标麻将算番", "算番器", "番种表", "81 番种", "逐张点牌"]) {
   if (!html.includes(marker)) throw new Error(`missing HTML marker: ${marker}`);
 }
+for (const marker of ["和牌条件", "自摸", "抢杠和", "和绝张", "海底捞月（末张点和）"]) {
+  if (!html.includes(marker)) throw new Error(`missing context option: ${marker}`);
+}
 if (!html.includes('id="tile-1m"') || !js.includes('href="#tile-')) {
   throw new Error("离线麻将精灵没有内联到打包页");
 }
@@ -36,6 +39,9 @@ if (/fetch\s*\(|XMLHttpRequest|WebSocket/.test(js)) {
   throw new Error("runtime network API detected in static bundle");
 }
 if (css.length < 2000) throw new Error("stylesheet was not built");
+if (!css.includes("grid-template-columns:repeat(14,minmax(0,1fr))") || /\.selected-rack\{[^}]*overflow-x:auto/.test(css)) {
+  throw new Error("已选手牌必须在单行自适应显示 14 张，避免横向滚动");
+}
 for (const path of ["dist/index.html", "dist/app.js", "dist/styles.css", "dist/favicon.svg", "dist/mahjong-sprite.svg", "dist/pwa.js", "dist/sw.js", "dist/manifest.webmanifest", "dist/icon-192.png", "dist/icon-512.png"]) {
   if (statSync(path).size === 0) throw new Error(`empty output: ${path}`);
 }
