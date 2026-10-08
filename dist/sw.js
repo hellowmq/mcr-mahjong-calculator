@@ -1,8 +1,8 @@
-const CACHE_NAME = "mcr-mahjong-shell-v5";
+const CACHE_NAME = "mcr-mahjong-shell-v6";
 const SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20261007-tiles",
+  "./styles.css?v=20261007-rack-height",
   "./app.js?v=20261007-tiles",
   "./pwa.js",
   "./favicon.svg",

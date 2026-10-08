@@ -76,7 +76,7 @@ main { width:min(760px,100%); margin:0 auto; }
 .section-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
 .section-title h2 { margin:0; font-size:16px; letter-spacing:-.03em; }
 .section-title span { color:var(--muted); font-size:12px; }
-.selected-rack { display:grid; width:100%; max-width:600px; grid-template-columns:repeat(14,minmax(0,1fr)); min-height:0; gap:2px; overflow:visible; }
+.selected-rack { display:grid; width:100%; max-width:600px; grid-template-columns:repeat(14,minmax(0,1fr)); min-height:0; aspect-ratio:10.65 / 1; gap:2px; overflow:visible; }
 .selected-tile { width:auto; padding:0; border-color:var(--blue); border-radius:3px; }
 .selected-tile.is-winning { border:2px solid #ef5350; box-shadow:0 0 0 2px #fff inset; }
 .empty-rack,.empty-result { margin:0; color:var(--muted); font-size:14px; line-height:1.65; }
