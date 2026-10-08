@@ -5,7 +5,7 @@
 [ChatGPT 部署版](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/) · [国内访问推荐](https://tech.wenmq.cn/mcr-mahjong-calculator/)
 
 <p align="center">
-  <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：已选手牌、完整点牌面板与听牌结果" />
+  <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：更新后的标准牌面、已选手牌与听牌结果" />
 </p>
 
 <p align="center">
