@@ -70,9 +70,6 @@ main { width:min(760px,100%); margin:0 auto; }
 .condition-toggles b { overflow:hidden; font-weight:500; text-overflow:ellipsis; }
 .context-rule-note { margin:9px 0 0; color:#ad775e; font-size:11px; line-height:1.55; }
 .selected-section,.result-section { padding:11px 0; border-bottom:1px solid var(--line); }
-.adsense-slot { max-width:100%; overflow:hidden; margin:40px 0 0; padding:14px 0 0; border-top:1px solid var(--line); text-align:center; }
-.adsense-label { display:block; margin-bottom:6px; color:var(--muted); font-size:11px; letter-spacing:.08em; }
-.adsense-slot .adsbygoogle { min-height:90px; }
 .section-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
 .section-title h2 { margin:0; font-size:16px; letter-spacing:-.03em; }
 .section-title span { color:var(--muted); font-size:12px; }
@@ -119,10 +116,6 @@ main { width:min(760px,100%); margin:0 auto; }
 .guide-share p { max-width:290px; margin:0; overflow:hidden; color:#5b7190; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; line-height:1.55; text-overflow:ellipsis; white-space:nowrap; }
 .guide-share canvas { width:82px; height:82px; flex:0 0 82px; background:#fff; image-rendering:pixelated; }
 .guide-note { margin:15px 0 0; font-size:12px; }
-.guide-privacy { margin-top:18px; padding:14px; border:1px solid var(--line); border-radius:7px; background:#f8fafc; }
-.guide-privacy h3 { margin:0 0 6px; font-size:14px; }
-.guide-privacy p { margin:0; color:var(--muted); font-size:12px; line-height:1.65; }
-.guide-privacy a { color:#245898; }
 .guide-offline { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px 12px; align-items:center; margin-top:20px; padding:15px; border:1px solid #b9d9cd; border-radius:7px; background:#f2faf6; }
 .guide-offline h3 { margin:0 0 5px; color:#245d48; font-size:14px; }
 .guide-offline p { margin:0; color:#527365; font-size:13px; line-height:1.55; }

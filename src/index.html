@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="纯前端国标麻将算番器与 81 番种表，逐张点牌，输入只在当前浏览器处理。" />
     <title>国标麻将算番器</title>
+    <!-- site:head -->
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
@@ -79,85 +80,7 @@
           <div class="section-title"><h2 id="result-title">听牌结果</h2><span id="result-subtitle">补一张牌后自动计算</span></div>
           <div class="result-content" id="result-content"></div>
         </section>
-        <aside class="adsense-slot" aria-label="广告" hidden>
-          <span class="adsense-label">广告</span>
-          <ins class="adsbygoogle"
-            style="display:block"
-            data-ad-client="ca-pub-5022811590872785"
-            data-ad-slot="1726092669"
-            data-ad-format="auto"
-            data-full-width-responsive="true"></ins>
-          <script>
-            if (location.hostname === "tech.wenmq.cn") {
-              const slot = document.currentScript.closest(".adsense-slot");
-              const adUnit = slot.querySelector(".adsbygoogle");
-              const label = slot.querySelector(".adsense-label");
-              let adRequested = false;
-              label.hidden = true;
-              slot.hidden = false;
-              const syncAdStatus = () => {
-                const status = adUnit.getAttribute("data-ad-status");
-                const privacy = document.querySelector(".guide-privacy");
-                if (privacy) privacy.hidden = status !== "filled";
-                else if (document.readyState === "loading") {
-                  document.addEventListener("DOMContentLoaded", syncAdStatus, { once: true });
-                }
-                if (status === "filled") {
-                  slot.hidden = false;
-                  label.hidden = false;
-                } else if (status === "unfilled" || status === "unfill-optimized") {
-                  slot.hidden = true;
-                }
-              };
-              const observer = new MutationObserver(() => {
-                syncAdStatus();
-                if (adUnit.hasAttribute("data-ad-status")) observer.disconnect();
-              });
-              observer.observe(adUnit, { attributes: true, attributeFilter: ["data-ad-status"] });
-              syncAdStatus();
-              const requestAd = () => {
-                if (adRequested) return;
-                adRequested = true;
-                const adsenseScript = document.createElement("script");
-                adsenseScript.async = true;
-                adsenseScript.crossOrigin = "anonymous";
-                adsenseScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5022811590872785";
-                adsenseScript.addEventListener("load", () => {
-                  (window.adsbygoogle = window.adsbygoogle || []).push({});
-                  window.setTimeout(() => {
-                    if (adUnit.getAttribute("data-ad-status") !== "filled") {
-                      slot.hidden = true;
-                      const privacy = document.querySelector(".guide-privacy");
-                      if (privacy) privacy.hidden = true;
-                    }
-                  }, 10000);
-                }, { once: true });
-                adsenseScript.addEventListener("error", () => {
-                  slot.hidden = true;
-                }, { once: true });
-                document.head.append(adsenseScript);
-                window.setTimeout(() => {
-                  if (adUnit.getAttribute("data-ad-status") !== "filled") {
-                    slot.hidden = true;
-                    const privacy = document.querySelector(".guide-privacy");
-                    if (privacy) privacy.hidden = true;
-                  }
-                }, 15000);
-              };
-              if ("IntersectionObserver" in window) {
-                const nearViewport = new IntersectionObserver((entries) => {
-                  if (entries.some((entry) => entry.isIntersecting)) {
-                    nearViewport.disconnect();
-                    requestAd();
-                  }
-                }, { rootMargin: "200px 0px" });
-                nearViewport.observe(slot);
-              } else {
-                requestAd();
-              }
-            }
-          </script>
-        </aside>
+        <!-- site:after-result -->
       </section>
 
       <section class="view catalog-view" data-view-panel="catalog" hidden aria-labelledby="catalog-title">
@@ -186,10 +109,7 @@
           <canvas id="share-qr" width="112" height="112" aria-label="当前地址二维码"></canvas>
         </section>
         <p class="guide-note">算番逻辑在本机浏览器运行；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
-        <section class="guide-privacy" aria-labelledby="ad-privacy-title" hidden>
-          <h3 id="ad-privacy-title">广告与隐私</h3>
-          <p>联网展示广告时，浏览器会连接 Google 加载广告；牌局计算仍在本机完成，本项目没有牌局数据服务端。广告数据的处理方式请查看 <a href="https://policies.google.com/privacy?hl=zh-CN" target="_blank" rel="noopener noreferrer">Google 隐私权政策</a>。</p>
-        </section>
+        <!-- site:guide -->
       </section>
     </main>
 
