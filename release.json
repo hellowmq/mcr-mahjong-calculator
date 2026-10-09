@@ -5,20 +5,21 @@
   "tag": "v0.1.1",
   "sourceRepository": "https://github.com/hellowmq/mcr-mahjong-calculator.git",
   "sourceSha": "37b60dfb2f6bc1923604b96b68e6a64b5f0ad989",
-  "configSha256": "9becf05b01efa37e7eed7ffb943363fe984b09b2f677ca12237175659a5d428b",
-  "workflowRevision": "868bde54cfdfb539def80c0d1e2b9a2714b1fea5",
+  "configSha256": "dddcce2c1a08025f6a2582b752f4120bc30e20677b53c52db9abc6bfda4228f7",
+  "workflowRevision": "e13d392b8c9d105a853d235a610b8da181e7e2ea",
+  "deploymentRef": "refs/tags/deploy/mcr-mahjong-calculator/v0.1.0",
   "files": {
     ".nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "app.js": "4e37af7fe14bf426fb32ebbeb9eab2e640fb08765bce7031b1c32753c01fd5d3",
     "favicon.svg": "f87f77209c72777a2d6db79b1be97e87364e0bc555e6ea63f92f949aebac9f1a",
     "icon-192.png": "61562b372b926cbc7a65f7a5074dca7cb456a7a8a6a64c346ea4b0cd3d38e29e",
     "icon-512.png": "6486676cdf4f1feaba0fcba25b94517152cfa9f51d2bb7fce1de4e6c1601f030",
-    "index.html": "5eac4dc8bc1bff4bb4f7f9b9abd67432e0e149d4fdd1e05f2550aa29dacd40b0",
+    "index.html": "9952197bb07ad0abcb95ee085f1eb4c7815714257676d809d109851c98d4c187",
     "mahjong-sprite.svg": "05fa20044cd9bca4486a2dd5c1d0cac77a36f0405e3126f37373e90263c7a788",
     "manifest.webmanifest": "07aeb8b9f338feb5163a7272a53b2e02638ccd7f2508ae356f0829f1467fd387",
     "pwa.js": "9d12685f2c581b2c4bde0c1763293e31ef6ee09b7a2e1bd13b0d3055e1e8f5fc",
     "sitemap.xml": "3a61ac717a4c402dd1fca69fb5c7912dd7d91063c2282b7aa8d6219b0b5a9b19",
     "styles.css": "0469558b9b506807a2a595a272f379263f3fe4f859ca500fd8bcd5cefdf0b180",
-    "sw.js": "242640128ddff60c25be43bce6e315ab0ca54d240375c9fb30c79569ead99407"
+    "sw.js": "fad9ec427f8c97417ef0e762522daae8a65e5f71de01d84f8fea50a7f4674b2a"
   }
 }
