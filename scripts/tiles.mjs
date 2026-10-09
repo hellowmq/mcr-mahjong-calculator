@@ -54,6 +54,12 @@ function texts(id) {
 
 const CX = 32, CY = 44, TOL = 0.6;
 
+// 竹节朝向按 180° 同向。JavaScript 的负数取模仍是负数，不能直接用 `%` 判断差值。
+function orientationDelta(a, b) {
+  const raw = Math.abs(a - b) % 180;
+  return Math.min(raw, 180 - raw);
+}
+
 // ── 约束 A：数量（筒=圆点数、条=竹节数）────────────────────────
 for (const suit of ["p", "s"]) {
   for (let n = 2; n <= 9; n++) {
@@ -76,7 +82,7 @@ function centerSymmetric(lv) {
       if (used[j] || j === i) continue;
       const q = lv[j];
       if (Math.abs(q.x - tx) <= TOL && Math.abs(q.y - ty) <= TOL && q.kind === k) {
-        if (k === "bamboo" && Math.abs((ang - q.ang) % 180) > 1) continue; // 竹节自身中心对称，朝向模180
+        if (k === "bamboo" && orientationDelta(ang, q.ang) > 1) continue;
         match = j; break;
       }
     }
