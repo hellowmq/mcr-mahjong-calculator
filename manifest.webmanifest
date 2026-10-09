@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "国标麻将算番器",
+  "short_name": "麻将算番",
+  "description": "离线可用的国标麻将算番器与 81 番种表。",
+  "lang": "zh-CN",
+  "start_url": "./#calculator",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "categories": ["utilities"],
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
