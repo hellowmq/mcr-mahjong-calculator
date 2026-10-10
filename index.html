@@ -20,15 +20,54 @@
     <meta name="twitter:title" content="国标麻将算番器 · MCR" />
     <meta name="twitter:description" content="国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。" />
     <script type="application/ld+json">
-      {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application","name":"国标麻将算番器 · MCR","url":"https://tech.wenmq.cn/mcr-mahjong-calculator/","description":"国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","browserRequirements":"Requires JavaScript","inLanguage":"zh-CN","softwareVersion":"v0.1.1","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"author":{"@type":"Person","name":"hellowmq","url":"https://github.com/hellowmq"},"subjectOf":{"@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code"}},{"@type":"SoftwareSourceCode","@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code","name":"国标麻将算番器 · MCR源码","codeRepository":"https://github.com/hellowmq/mcr-mahjong-calculator","url":"https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.1","version":"v0.1.1","programmingLanguage":"JavaScript","targetProduct":{"@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application"}},{"@type":"FAQPage","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#site-faq","inLanguage":"zh-CN","mainEntity":[{"@type":"Question","name":"这是哪一种麻将规则的算番器？","acceptedAnswer":{"@type":"Answer","text":"本工具默认按 1998 中国官方麻将竞赛规则（MCR）口径算番，提供 81 番种表，并提示是否达到 8 番起和。不同地区麻将规则不适用；复杂赛事牌例以赛程规程为准。"}},{"@type":"Question","name":"如何查听牌和查看算番结果？","acceptedAnswer":{"@type":"Answer","text":"逐张点选麻将牌；已选牌计数达到 13 张时自动查听，达到 14 张时列出算番结果。副露可用吃、碰、明杠、暗杠和加杠录入，圈风、门风、花牌与和牌条件可另行设置。"}},{"@type":"Question","name":"需要账号或联网才能算番吗？","acceptedAnswer":{"@type":"Answer","text":"无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线广告会连接 Google，离线时广告不可用。"}}]}]}
+      {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application","name":"国标麻将算番器 · MCR","url":"https://tech.wenmq.cn/mcr-mahjong-calculator/","description":"国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","browserRequirements":"Requires JavaScript","inLanguage":"zh-CN","softwareVersion":"v0.1.1","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"author":{"@type":"Person","name":"hellowmq","url":"https://github.com/hellowmq"},"subjectOf":{"@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code"}},{"@type":"SoftwareSourceCode","@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code","name":"国标麻将算番器 · MCR源码","codeRepository":"https://github.com/hellowmq/mcr-mahjong-calculator","url":"https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.1","version":"v0.1.1","programmingLanguage":"JavaScript","targetProduct":{"@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application"}},{"@type":"FAQPage","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#site-faq","inLanguage":"zh-CN","mainEntity":[{"@type":"Question","name":"这是哪一种麻将规则的算番器？","acceptedAnswer":{"@type":"Answer","text":"本工具默认按 1998 中国官方麻将竞赛规则（MCR）口径算番，提供 81 番种表，并提示是否达到 8 番起和。不同地区麻将规则不适用；复杂赛事牌例以赛程规程为准。"}},{"@type":"Question","name":"如何查听牌和查看算番结果？","acceptedAnswer":{"@type":"Answer","text":"逐张点选麻将牌；已选牌计数达到 13 张时自动查听，达到 14 张时列出算番结果。副露可用吃、碰、明杠、暗杠和加杠录入，圈风、门风、花牌与和牌条件可另行设置。"}},{"@type":"Question","name":"需要账号或联网才能算番吗？","acceptedAnswer":{"@type":"Answer","text":"无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线访问统计与广告会连接 Google，不上传牌面或算番输入，离线时这些联网服务不可用。"}}]}]}
+    </script>
+    <script data-wenmq-analytics>
+(function bootstrap(config) {
+  if (!config.hosts.includes(location.hostname) || window.top !== window.self || window.__wenmqAnalyticsLoaded) return;
+  window.__wenmqAnalyticsLoaded = true;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  function pageUrl(value) {
+    try {
+      const url = new URL(value);
+      return /^https?:$/.test(url.protocol) ? url.origin + url.pathname : '';
+    } catch { return ''; }
+  }
+  let lastPage = pageUrl(location.href);
+  window.gtag('js', new Date());
+  window.gtag('config', config.measurementId, {
+    page_location: lastPage,
+    page_referrer: pageUrl(document.referrer),
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false
+  });
+  // Astro swaps article pages without a full load. Calculator tab changes do
+  // not dispatch this event, and a query/hash change is not another visit.
+  document.addEventListener('astro:page-load', () => {
+    const nextPage = pageUrl(location.href);
+    if (!nextPage || nextPage === lastPage) return;
+    window.gtag('event', 'page_view', {
+      send_to: config.measurementId,
+      page_location: nextPage,
+      page_referrer: lastPage,
+      page_title: document.title
+    });
+    lastPage = nextPage;
+  });
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(config.measurementId);
+  document.head.append(script);
+})({"measurementId":"G-NK7HHE8WXB","hosts":["tech.wenmq.cn"]});
     </script>
     <style>
       .adsense-slot { max-width:100%; overflow:hidden; margin:40px 0 0; padding:14px 0 0; border-top:1px solid var(--line); text-align:center; }
       .adsense-label { display:block; margin-bottom:6px; color:var(--muted); font-size:11px; letter-spacing:.08em; }
       .adsense-slot .adsbygoogle { min-height:90px; }
-      .site-source, .site-faq { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
-      .site-source h3, .site-faq h3 { margin:0 0 8px; font-size:15px; }
-      .site-source p, .site-faq p { margin:0; color:var(--muted); font-size:13px; line-height:1.75; overflow-wrap:anywhere; }
+      .site-source, .site-faq, .site-analytics { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+      .site-source h3, .site-faq h3, .site-analytics h3 { margin:0 0 8px; font-size:15px; }
+      .site-source p, .site-faq p, .site-analytics p { margin:0; color:var(--muted); font-size:13px; line-height:1.75; overflow-wrap:anywhere; }
       .site-source a { color:#245898; text-underline-offset:3px; }
       .site-source-links { display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:8px; }
       .site-source-links a { display:inline-flex; align-items:center; min-height:44px; font-size:13px; }
@@ -283,8 +322,12 @@
           </details>
           <details>
             <summary>需要账号或联网才能算番吗？</summary>
-            <p>无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线广告会连接 Google，离线时广告不可用。</p>
+            <p>无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线访问统计与广告会连接 Google，不上传牌面或算番输入，离线时这些联网服务不可用。</p>
           </details>
+        </section>
+        <section class="site-analytics" aria-labelledby="analytics-title">
+          <h3 id="analytics-title">访问统计</h3>
+          <p>本页使用 Google Analytics 统计访问量与来源，浏览器会连接 Google；不会上传所选牌面或算番输入。网址中的查询参数与页签不作为访问地址上传。数据处理方式请查看 <a href="https://policies.google.com/privacy?hl=zh-CN" target="_blank" rel="noopener noreferrer">Google 隐私权政策</a>。</p>
         </section>
         <section class="guide-privacy" aria-labelledby="ad-privacy-title" hidden>
           <h3 id="ad-privacy-title">广告与隐私</h3>
