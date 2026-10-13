@@ -2,12 +2,7 @@
 
 面向 MCR（Mahjong Competition Rules，中国官方麻将竞赛规则）的纯前端算番器与 81 番种表。算番无需本站后端、账号、数据库或运行时 API。
 
-域名、广告和搜索标记不在本仓库维护。页面留有 `<!-- site:head -->`、`<!-- site:after-result -->`、`<!-- site:guide -->` 三处空标记，部署时按发布 tag 注入。离线算番不依赖这些标记。
-
-可部署版本就是 git tag。同一个 tag 有两个发布目标：
-
-- [国内访问](https://tech.wenmq.cn/mcr-mahjong-calculator/)：按 tag 构建后注入广告和搜索标记，再发布到 GitHub Pages。
-- [ChatGPT 部署版](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/)：直接使用本仓库的 tag，不注入广告。该域名不属于本仓库所有者，不能加载 AdSense。
+[国内访问推荐](https://tech.wenmq.cn/mcr-mahjong-calculator/) · [ChatGPT 部署版（备用）](https://guobiao-mahjong-calculator.firehorsek.chatgpt.site/)
 
 <p align="center">
   <img src="docs/media/mobile-calculator.png" width="390" alt="MCR 麻将算番器移动端预览：更新后的标准牌面、已选手牌与听牌结果" />
