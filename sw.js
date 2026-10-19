@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcr-mahjong-shell-v11-ad8b10face51";
+const CACHE_NAME = "mcr-mahjong-shell-v11-099cccdbafd5";
 const SHELL = [
   "./",
   "./index.html",
