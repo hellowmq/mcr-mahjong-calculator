@@ -2512,6 +2512,7 @@
                   });
                 }
                 for (let l = k + 1; l < sortedKegang.length; l++) {
+                  if (sortedKegang[l].rank !== sortedKegang[k].rank + 1) continue;
                   if (si === sj && si === sk && si === tileSuit(packTileId(packs[sortedKegang[l].id]))) {
                     candidates.push({
                       fanId: constants2.FAN_YISESIJIEGAO,
