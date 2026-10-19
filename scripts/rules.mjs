@@ -64,4 +64,15 @@ assert.ok(bigFourWinds.includes("大四喜"));
 assert.ok(!bigFourWinds.includes("圈风刻"), "大四喜不另计圈风刻");
 assert.ok(!bigFourWinds.includes("门风刻"), "大四喜不另计门风刻");
 
+// 校验花牌按张返回多个 fanId 81 时，在规则与总分层面上数值累加正确
+const flowerHand = countFan("123m456m789m234s5p5p|EE0000|3");
+const flowerFans = flowerHand.fans.filter((fan) => fan.fanId === 81);
+assert.equal(flowerFans.length, 3, "引擎原生返回 3 条独立花牌记录");
+assert.equal(flowerFans.reduce((sum, fan) => sum + fan.score, 0), 3, "花牌总番值正确累加 3 番");
+
+// 校验起和门槛：isHu 为 true 时可能未达 8 番
+const lowFanHand = countFan("[222m,2]345m456p789s33p|EE0000|0");
+assert.equal(lowFanHand.isHu, true, "牌型完整时引擎 isHu 为 true");
+assert.equal(lowFanHand.totalFan, 1, "无字仅 1 番，调用层需自行检验 8 番起和门槛");
+
 console.log("context rule checks passed");

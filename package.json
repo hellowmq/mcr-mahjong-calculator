@@ -6,7 +6,7 @@
   "scripts": {
     "icons": "node scripts/icons.mjs",
     "build": "node scripts/icons.mjs && node scripts/build.mjs",
-    "check": "node scripts/check.mjs && node scripts/rules.mjs && node scripts/tiles.mjs"
+    "check": "node scripts/check.mjs && node scripts/rules.mjs && node scripts/tiles.mjs && node --test scripts/usage.mjs"
   },
   "dependencies": {
     "gb-mahjong-js": "2.2.1",

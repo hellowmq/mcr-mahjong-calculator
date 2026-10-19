@@ -3,6 +3,7 @@ import constants from "gb-mahjong-js/lib/core/constants.js";
 import QRCode from "qrcode";
 import { FAN_POINTS, FANS } from "./fans.js";
 import { WinContextError, createWinContext, encodeWinContext, gangLabel, lastTileLabel, normalizeWinContext, validateWinContext, validateWinContextSetup } from "./win-context.js";
+import { createUsageTracker } from "./usage.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -25,6 +26,10 @@ const state = {
   hand: [], melds: [], draft: [], draftError: "", mode: "hand", flowers: 0, round: "E", seat: "E",
   winContext: createWinContext(),
 };
+const usage = createUsageTracker((detail) => document.dispatchEvent(new CustomEvent("mcr:usage", { detail })));
+function usageSignature() {
+  return JSON.stringify([state.hand, state.melds, state.draft, state.flowers, state.round, state.seat, state.winContext]);
+}
 
 function tileSvg(code) {
   return `<svg class="tile-face" viewBox="0 0 64 88" aria-hidden="true"><use href="#tile-${code}"></use></svg>`;
@@ -59,21 +64,57 @@ function buildInput(hand = state.hand, winContext = state.winContext) {
   return `${state.melds.map(meldDsl).join("")}${compactTiles(hand.slice(0, -1))}${winning}|${context}|${state.flowers}`;
 }
 function fanItems(result) {
-  return (result.fans ?? []).map((entry) => ({ name: constants.FAN_NAME[entry.fanId] ?? "未命名番种", points: entry.score ?? 0 }))
+  const aggregated = new Map();
+  for (const entry of result.fans ?? []) {
+    const name = constants.FAN_NAME[entry.fanId] ?? "未命名番种";
+    const points = entry.score ?? 0;
+    const existing = aggregated.get(name);
+    if (existing) {
+      existing.points += points;
+      existing.count += 1;
+    } else {
+      aggregated.set(name, { name, points, count: 1 });
+    }
+  }
+  return [...aggregated.values()]
+    .map((fan) => ({
+      ...fan,
+      displayName: fan.count > 1 ? `${fan.name} × ${fan.count}` : fan.name,
+    }))
     .sort((left, right) => right.points - left.points || left.name.localeCompare(right.name, "zh-CN"));
 }
 function coreTotal(result) { return fanItems(result).filter((fan) => fan.name !== "花牌").reduce((sum, fan) => sum + fan.points, 0); }
 
 function renderPalette() {
-  $("#wan-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("m")).map(tileButton).join("");
-  $("#tong-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("p")).map(tileButton).join("");
-  $("#tiao-tiles").innerHTML = TILES.filter((tile) => tile.endsWith("s")).map(tileButton).join("");
-  $("#honor-tiles").innerHTML = TILES.filter((tile) => HONORS.includes(tile)).map(tileButton).join("");
+  const focused = document.activeElement;
+  for (const [id, suit] of [["wan", "m"], ["tong", "p"], ["tiao", "s"], ["honor", null]]) {
+    const container = $(`#${id}-tiles`);
+    if (!container.childElementCount) container.innerHTML = TILES.filter((tile) => suit ? tile.endsWith(suit) : HONORS.includes(tile)).map(tileButton).join("");
+    for (const button of container.children) {
+      const code = button.dataset.tile;
+      const count = countTile(code);
+      const kongAction = state.mode === "anGang" && count === 4
+        || state.mode === "jiaGang" && count === 4 && state.melds.some((meld) => meld.type === "peng" && meld.tiles[0] === code);
+      button.disabled = count >= 4 && !kongAction;
+      button.setAttribute("aria-label", `${tileLabel(code)}，当前已有 ${count} 张`);
+    }
+  }
+  if (focused?.matches("[data-tile]") && focused.disabled) {
+    const buttons = $$("[data-tile]");
+    const start = buttons.indexOf(focused);
+    for (let step = 1; step <= buttons.length; step += 1) {
+      const next = buttons[(start + step) % buttons.length];
+      if (!next.disabled) { next.focus({ preventScroll: true }); break; }
+    }
+  }
 }
 function renderWinds() {
   const radio = (name, selected) => Object.entries(WIND_LABELS).map(([value, label]) => `<label><input type="radio" name="${name}" value="${value}"${selected === value ? " checked" : ""}/><span>${label}</span></label>`).join("");
-  $("#round-winds").innerHTML = radio("round", state.round);
-  $("#seat-winds").innerHTML = radio("seat", state.seat);
+  for (const [id, name, selected] of [["round-winds", "round", state.round], ["seat-winds", "seat", state.seat]]) {
+    const container = $(`#${id}`);
+    if (!container.childElementCount) container.innerHTML = radio(name, selected);
+    for (const input of container.querySelectorAll("input")) input.checked = input.value === selected;
+  }
 }
 function renderDraft() {
   const meta = MODE_META[state.mode];
@@ -95,7 +136,7 @@ function renderHand() {
   $("#hand-state").textContent = total === 13 ? "等待一张和牌" : total === 14 ? "最后一张是和牌" : `还差 ${Math.max(0, 13 - total)} 张`;
   $("#selected-rack").innerHTML = state.hand.length
     ? state.hand.map((tile, index) => `<button type="button" class="selected-tile${index === state.hand.length - 1 && total === 14 ? " is-winning" : ""}" data-remove-hand="${index}" aria-label="移除${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("")
-    : `<p class="empty-rack">从上方点选立牌</p>`;
+    : `<p class="empty-rack">点下方牌池录入手牌</p>`;
   $("#meld-rack").innerHTML = state.melds.map((meld, index) => `<div class="meld-group"><span>${MODE_META[meld.type].label}</span>${meld.tiles.map((tile) => `<i>${tileSvg(tile)}</i>`).join("")}<button type="button" data-remove-meld="${index}" aria-label="移除这副${MODE_META[meld.type].label}">×</button></div>`).join("");
 }
 function renderConditions() {
@@ -159,12 +200,25 @@ function resultCard(wait) {
   const eligible = coreTotal(wait.result) >= 8;
   return `<button type="button" class="wait-card${eligible ? "" : " is-low"}" data-promote-tile="${wait.tile}" aria-label="选择${tileLabel(wait.tile)}作为和牌，${wait.result.totalFan}番">${tileSvg(wait.tile)}<span><strong>${wait.result.totalFan}番</strong><small>${eligible ? "可和" : "不足 8 番"}</small></span></button>`;
 }
+function friendlyEngineErrorMessage(error) {
+  const message = error?.message || String(error);
+  if (message.includes("Failed to parse hand: -7")) {
+    return "场况与手牌结构冲突（例如未录入明暗杠却勾选了杠上开花，或和绝张/抢杠和牌张已在立牌中存在）";
+  }
+  if (message.includes("Failed to parse hand: -5")) {
+    return "牌张总数不符合规则（和牌应为 14 张结构）";
+  }
+  if (message.includes("Failed to parse hand: -1")) {
+    return "存在非法牌码";
+  }
+  return message;
+}
 function renderCompleted(result) {
   const eligible = coreTotal(result) >= 8;
   $("#result-title").textContent = result.isHu ? `${result.totalFan} 番` : "未构成和牌";
   $("#result-subtitle").textContent = result.isHu ? (eligible ? "达到 8 番起和" : "未达到 8 番起和") : "检查牌数与副露";
   $("#result-content").innerHTML = result.isHu
-    ? `<div class="fan-list">${fanItems(result).map((fan) => `<div><span>${fan.name}</span><strong>+${fan.points}</strong></div>`).join("")}</div><p class="result-note">${result.decomposition?.packs?.length ? "已选取番数最高的合法拆解。" : "特殊和型已按规则单独判断。"}</p>`
+    ? `<div class="fan-list">${fanItems(result).map((fan) => `<div><span>${fan.displayName}</span><strong>+${fan.points}</strong></div>`).join("")}</div><p class="result-note">${result.decomposition?.packs?.length ? "已选取番数最高的合法拆解。" : "特殊和型已按规则单独判断。"}</p>`
     : `<p class="empty-result">这 14 张牌不能组成合法和牌；可点选已选牌移除后继续调整。</p>`;
 }
 function renderResults() {
@@ -199,16 +253,22 @@ function renderResults() {
       $("#result-title").textContent = waits.length ? `听 ${waits.length} 张牌` : "尚未听牌";
       $("#result-subtitle").textContent = waits.length ? (invalidWaits.length ? `另有 ${invalidWaits.length} 张进张不符合所选场况` : "点一张牌查看完整拆解") : "继续调整立牌或副露";
       $("#result-content").innerHTML = waits.length ? `<div class="wait-list">${waits.map(resultCard).join("")}</div>${invalidWaits.length ? `<p class="result-note">已按当前和牌方式排除：${invalidWaits.map((wait) => tileLabel(wait.tile)).join("、")}。</p>` : ""}` : `<p class="empty-result">当前 13 张牌还没有可和的进张。</p>`;
+      if (waits.length && !state.draft.length) usage.result("waits", usageSignature());
       return;
     }
-    if (total === 14) { renderCompleted(countFan(buildInput())); return; }
+    if (total === 14) {
+      const result = countFan(buildInput());
+      renderCompleted(result);
+      if (result.isHu && !state.draft.length) usage.result("score", usageSignature());
+      return;
+    }
     $("#result-title").textContent = total < 13 ? "继续点牌" : "牌数过多";
     $("#result-subtitle").textContent = total < 13 ? `还差 ${13 - total} 张才可查听牌` : "请移除多余牌";
     $("#result-content").innerHTML = `<p class="empty-result">${total < 13 ? "凑满 13 张会自动列出全部听牌。" : "完整牌面和副露合计应为 14 张。"}</p>`;
   } catch (error) {
     $("#result-title").textContent = "无法计算";
     $("#result-subtitle").textContent = "请检查当前场况";
-    $("#result-content").innerHTML = `<p class="empty-result">${escapeHtml(error.message)}</p>`;
+    $("#result-content").innerHTML = `<p class="empty-result">${escapeHtml(friendlyEngineErrorMessage(error))}</p>`;
   }
 }
 function renderCatalog() {
@@ -219,15 +279,41 @@ function renderCatalog() {
 }
 async function renderShareCode() {
   const url = `${window.location.origin}${window.location.pathname}#calculator`;
-  $("#share-url").textContent = url;
-  try { await QRCode.toCanvas($("#share-qr"), url, { width: 112, margin: 0, color: { dark: "#172031", light: "#ffffff" }, errorCorrectionLevel: "M" }); }
-  catch { $("#share-url").textContent = "二维码生成失败，请复制当前地址"; }
+  $("#share-url").value = url;
+  try { $("#share-qr").src = await QRCode.toDataURL(url, { width: 224, margin: 4, color: { dark: "#172031", light: "#ffffff" }, errorCorrectionLevel: "M" }); }
+  catch { $("#share-qr").hidden = true; $("#share-status").textContent = "二维码生成失败，仍可复制链接"; }
+}
+async function copyShareUrl() {
+  const input = $("#share-url");
+  try {
+    await navigator.clipboard.writeText(input.value);
+    $("#share-status").textContent = "链接已复制";
+    usage.share();
+  } catch {
+    input.focus(); input.select(); input.setSelectionRange(0, input.value.length);
+    $("#share-status").textContent = "未能自动复制，链接已选中，请手动复制";
+  }
 }
 function renderAll() {
+  const focused = document.activeElement;
+  const focusAttribute = ["data-remove-hand", "data-remove-meld", "data-remove-draft", "data-promote-tile"].find((name) => focused?.hasAttribute(name));
+  const focusKey = focusAttribute && focused.getAttribute(focusAttribute);
   renderPalette(); renderWinds(); renderDraft(); renderHand(); renderConditions(); renderResults();
-  $$('[data-mode]').forEach((button) => button.classList.toggle("is-active", button.dataset.mode === state.mode));
+  $$('[data-mode]').forEach((button) => {
+    const active = button.dataset.mode === state.mode;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  if (focusAttribute && !focused.isConnected) {
+    const candidates = $$(`[${focusAttribute}]`);
+    const next = focusAttribute === "data-promote-tile"
+      ? candidates.find((button) => button.getAttribute(focusAttribute) === focusKey) || $$("[data-remove-hand]").at(-1)
+      : candidates[Math.min(Number(focusKey), candidates.length - 1)];
+    (next || $("[data-tile]:not(:disabled)")).focus({ preventScroll: true });
+  }
 }
 function addTile(code) {
+  const before = usageSignature();
   if (["peng", "mingGang", "anGang", "jiaGang"].includes(state.mode)) {
     const mode = state.mode;
     const copiesInHand = state.hand.filter((tile) => tile === code).length;
@@ -275,6 +361,7 @@ function addTile(code) {
       if (state.draft.length === MODE_META[state.mode].need) completeDraft();
     }
   }
+  if (usageSignature() !== before) usage.start();
   renderAll();
 }
 function validateDraft() {
@@ -296,11 +383,12 @@ function completeDraft() {
   } catch (error) { state.draftError = `${error.message}；点已选牌可撤回`; }
 }
 function resetState() {
+  usage.reset();
   state.hand = []; state.melds = []; state.draft = []; state.draftError = ""; state.mode = "hand"; state.flowers = 0; state.round = "E"; state.seat = "E";
   state.winContext = createWinContext();
   renderAll();
 }
-function loadSample() { resetState(); state.hand = [...SAMPLE_HAND]; renderAll(); setView("calculator"); }
+function loadSample() { resetState(); usage.sample(); state.hand = [...SAMPLE_HAND]; renderAll(); setView("calculator"); }
 function setView(view) {
   $$('[data-view-panel]').forEach((panel) => { panel.hidden = panel.dataset.viewPanel !== view; panel.classList.toggle("is-visible", panel.dataset.viewPanel === view); });
   $$('[data-view]').forEach((button) => button.classList.toggle("is-active", button.dataset.view === view));
@@ -313,7 +401,7 @@ document.addEventListener("click", (event) => {
   const tile = event.target.closest("[data-tile]"); if (tile) addTile(tile.dataset.tile);
   const hand = event.target.closest("[data-remove-hand]"); if (hand) { state.hand.splice(Number(hand.dataset.removeHand), 1); renderAll(); }
   const meld = event.target.closest("[data-remove-meld]"); if (meld) { state.melds.splice(Number(meld.dataset.removeMeld), 1); renderAll(); }
-  const wait = event.target.closest("[data-promote-tile]"); if (wait && selectedCount() === 13) { state.hand.push(wait.dataset.promoteTile); renderAll(); }
+  const wait = event.target.closest("[data-promote-tile]"); if (wait && selectedCount() === 13) { state.hand.push(wait.dataset.promoteTile); usage.start(); renderAll(); }
   const draft = event.target.closest("[data-remove-draft]"); if (draft) { state.draft.splice(Number(draft.dataset.removeDraft), 1); state.draftError = ""; renderAll(); }
   const mode = event.target.closest("[data-mode]"); if (mode) { state.mode = mode.dataset.mode; state.draft = []; state.draftError = ""; renderAll(); }
   const view = event.target.closest("[data-view]"); if (view) setView(view.dataset.view);
@@ -321,6 +409,7 @@ document.addEventListener("click", (event) => {
 });
 $("#reset-hand").addEventListener("click", resetState);
 $("#load-sample").addEventListener("click", loadSample);
+$("#copy-share-url").addEventListener("click", copyShareUrl);
 $("#round-winds").addEventListener("change", (event) => { state.round = event.target.value; renderAll(); });
 $("#seat-winds").addEventListener("change", (event) => { state.seat = event.target.value; renderAll(); });
 $$('[data-context-flag]').forEach((input) => input.addEventListener("change", (event) => {

@@ -36,7 +36,9 @@ if (html.includes("ca-pub-") || html.includes("adsbygoogle") || html.includes("g
 if (manifest.scope !== "./" || manifest.start_url !== "./#calculator") {
   throw new Error("PWA manifest is not relative to the deployed project path");
 }
-if (!pwa.includes('register("./sw.js"') || !serviceWorker.includes('"./app.js?v=20261007-tiles"') || !serviceWorker.includes('"./index.html"')) {
+const appAsset = html.match(/src="(\.\/app\.js\?[^\"]+)"/)?.[1];
+const styleAsset = html.match(/href="(\.\/styles\.css\?[^\"]+)"/)?.[1];
+if (!pwa.includes('register("./sw.js"') || !appAsset || !styleAsset || !serviceWorker.includes(JSON.stringify(appAsset)) || !serviceWorker.includes(JSON.stringify(styleAsset)) || !serviceWorker.includes('"./index.html"')) {
   throw new Error("PWA registration or offline shell is incomplete");
 }
 if (/fetch\s*\(|XMLHttpRequest|WebSocket/.test(js)) {

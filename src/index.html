@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20261008-desktop-tabs" />
+    <link rel="stylesheet" href="./styles.css?v=20261019-interaction-2" />
   </head>
   <body>
     <!-- INLINE_SPRITE_DEFS -->
@@ -32,17 +32,18 @@
         <section class="selected-section" aria-labelledby="selected-title">
           <div class="section-title"><h2 id="selected-title">已选手牌</h2><span id="hand-state">最后一张是和牌</span></div>
           <div class="selected-rack" id="selected-rack"></div>
+          <p class="hand-hint">轻触已选牌面可移除</p>
           <div class="meld-rack" id="meld-rack"></div>
         </section>
 
         <section class="action-section" aria-label="选择方式与场况">
-          <div class="action-tabs" role="tablist" aria-label="录入方式">
-            <button type="button" class="action-tab is-active" data-mode="hand">立牌</button>
-            <button type="button" class="action-tab" data-mode="chi">吃</button>
-            <button type="button" class="action-tab" data-mode="peng">碰</button>
-            <button type="button" class="action-tab" data-mode="mingGang">明杠</button>
-            <button type="button" class="action-tab" data-mode="anGang">暗杠</button>
-            <button type="button" class="action-tab" data-mode="jiaGang">加杠</button>
+          <div class="action-tabs" role="group" aria-label="录入方式">
+            <button type="button" class="action-tab is-active" data-mode="hand" aria-pressed="true">立牌</button>
+            <button type="button" class="action-tab" data-mode="chi" aria-pressed="false">吃</button>
+            <button type="button" class="action-tab" data-mode="peng" aria-pressed="false">碰</button>
+            <button type="button" class="action-tab" data-mode="mingGang" aria-pressed="false">明杠</button>
+            <button type="button" class="action-tab" data-mode="anGang" aria-pressed="false">暗杠</button>
+            <button type="button" class="action-tab" data-mode="jiaGang" aria-pressed="false">加杠</button>
           </div>
           <div class="draft-bar" id="draft-bar" hidden>
             <span id="draft-label">选牌后自动完成</span>
@@ -105,8 +106,13 @@
           <p class="offline-hint">iPhone/iPad：在 Safari 分享菜单中选择“添加到主屏幕”。电脑或 Android：使用浏览器菜单安装。</p>
         </section>
         <section class="guide-share" aria-label="分享入口">
-          <div><h3>电脑打开后，手机扫码继续点牌</h3><p id="share-url">正在生成地址</p></div>
-          <canvas id="share-qr" width="112" height="112" aria-label="当前地址二维码"></canvas>
+          <div class="share-details">
+            <h3>扫码或复制链接，在其他设备打开</h3>
+            <input id="share-url" type="text" readonly aria-label="分享链接" />
+            <button id="copy-share-url" type="button">复制链接</button>
+            <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+          </div>
+          <img id="share-qr" width="224" height="224" alt="算番器入口二维码" />
         </section>
         <p class="guide-note">算番逻辑在本机浏览器运行；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
         <!-- site:guide -->
@@ -118,7 +124,7 @@
       <button type="button" class="bottom-nav-item" data-view="catalog"><span class="nav-icon">▤</span>番表</button>
       <button type="button" class="bottom-nav-item" data-view="guide"><span class="nav-icon">◌</span>用法</button>
     </nav>
-    <script src="./app.js?v=20261007-tiles" defer></script>
+    <script src="./app.js?v=20261019-interaction-2" defer></script>
     <script src="./pwa.js" defer></script>
   </body>
 </html>
