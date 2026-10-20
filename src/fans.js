@@ -94,3 +94,4 @@ export const FANS = [
 ];
 
 export const FAN_POINTS = [...new Set(FANS.map((fan) => fan.points))].sort((a, b) => b - a);
+export const FAN_GROUPS = [...new Set(FANS.map((fan) => fan.group))];

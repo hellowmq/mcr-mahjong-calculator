@@ -6096,6 +6096,7 @@
     { name: "花牌", points: 1, group: "特殊系列", description: "春夏秋冬、梅兰竹菊，每张计一番，不计入起和。", excludes: "不计入起和" }
   ];
   var FAN_POINTS = [...new Set(FANS.map((fan) => fan.points))].sort((a, b) => b - a);
+  var FAN_GROUPS = [...new Set(FANS.map((fan) => fan.group))];
 
   // src/win-context.js
   var WinContextError = class extends Error {
@@ -6231,7 +6232,11 @@
     flowers: 0,
     round: "E",
     seat: "E",
-    winContext: createWinContext()
+    winContext: createWinContext(),
+    catalogQuery: "",
+    catalogPointFilter: "all",
+    catalogGroupFilter: "all",
+    catalogExpanded: false
   };
   var usage = createUsageTracker((detail) => document.dispatchEvent(new CustomEvent("mcr:usage", { detail })));
   function usageSignature() {
@@ -6484,11 +6489,88 @@
       $("#result-content").innerHTML = `<p class="empty-result">${escapeHtml(friendlyEngineErrorMessage(error))}</p>`;
     }
   }
+  function highlightMatch(text, query) {
+    if (!query || !text) return escapeHtml(text);
+    const escapedText = escapeHtml(text);
+    const escapedQuery = escapeHtml(query);
+    const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    return escapedText.replace(regex, "<mark>$1</mark>");
+  }
+  function matchesPointFilter(points, filter) {
+    if (filter === "hu") return points >= 8;
+    if (filter === "high") return points >= 24;
+    if (filter === "mid") return points >= 8 && points <= 16;
+    if (filter === "low") return points <= 6;
+    return true;
+  }
+  function filterCatalogFans() {
+    const query = state.catalogQuery.toLowerCase();
+    return FANS.filter((fan) => {
+      if (!matchesPointFilter(fan.points, state.catalogPointFilter)) return false;
+      if (state.catalogGroupFilter !== "all" && fan.group !== state.catalogGroupFilter) return false;
+      if (!query) return true;
+      return fan.name.toLowerCase().includes(query) || fan.group.toLowerCase().includes(query) || fan.description.toLowerCase().includes(query) || fan.excludes && fan.excludes.toLowerCase().includes(query);
+    });
+  }
   function renderCatalog() {
-    $("#fan-catalog").innerHTML = FAN_POINTS.map((points) => {
-      const entries = FANS.filter((fan) => fan.points === points);
-      return `<section class="fan-group"><h3><strong>${points}</strong>番 <span>${entries.length} 项</span></h3><div>${entries.map((fan) => `<details><summary>${fan.name}</summary><p>${fan.description}</p>${fan.excludes ? `<small>常见排斥：${fan.excludes}</small>` : ""}</details>`).join("")}</div></section>`;
+    const filtered = filterCatalogFans();
+    const hasFilter = Boolean(state.catalogQuery) || state.catalogPointFilter !== "all" || state.catalogGroupFilter !== "all";
+    const countEl = $("#catalog-count");
+    if (countEl) {
+      countEl.textContent = hasFilter ? `找到 ${filtered.length} 项番种 (共 ${FANS.length} 项)` : `共 ${FANS.length} 项番种`;
+    }
+    const resetBtn = $("#catalog-reset-filters");
+    if (resetBtn) resetBtn.hidden = !hasFilter;
+    const clearBtn = $("#catalog-search-clear");
+    if (clearBtn) clearBtn.hidden = !state.catalogQuery;
+    const expandBtn = $("#catalog-toggle-expand");
+    if (expandBtn) expandBtn.textContent = state.catalogExpanded ? "全部收起" : "全部展开";
+    $$("[data-point-filter]").forEach((pill) => {
+      const active = pill.dataset.pointFilter === state.catalogPointFilter;
+      pill.classList.toggle("is-active", active);
+      pill.setAttribute("aria-checked", String(active));
+    });
+    const catalogEl = $("#fan-catalog");
+    if (!catalogEl) return;
+    if (filtered.length === 0) {
+      catalogEl.innerHTML = `<div class="catalog-empty">
+      <p>未找到符合条件的番种</p>
+      <button type="button" class="catalog-empty-action" data-reset-catalog="true">重置所有筛选</button>
+    </div>`;
+      return;
+    }
+    const shouldOpen = Boolean(state.catalogQuery) || state.catalogExpanded;
+    catalogEl.innerHTML = FAN_POINTS.map((points) => {
+      const entries = filtered.filter((fan) => fan.points === points);
+      if (!entries.length) return "";
+      return `<section class="fan-group">
+      <h3><strong>${points}</strong>番 <span>${entries.length} 项</span></h3>
+      <div>${entries.map((fan) => `<details ${shouldOpen ? "open" : ""}>
+        <summary>${highlightMatch(fan.name, state.catalogQuery)}<span class="fan-tag">${fan.group}</span></summary>
+        <p>${highlightMatch(fan.description, state.catalogQuery)}</p>
+        ${fan.excludes ? `<small>常见排斥：${highlightMatch(fan.excludes, state.catalogQuery)}</small>` : ""}
+      </details>`).join("")}</div>
+    </section>`;
     }).join("");
+  }
+  function initCatalogFilters() {
+    const groupSelect = $("#catalog-group-filter");
+    if (!groupSelect) return;
+    groupSelect.innerHTML = `<option value="all">全系列 (${FANS.length} 项)</option>` + FAN_GROUPS.map((group) => {
+      const count = FANS.filter((f) => f.group === group).length;
+      return `<option value="${escapeHtml(group)}">${escapeHtml(group)} (${count})</option>`;
+    }).join("");
+  }
+  function resetCatalogFilters() {
+    state.catalogQuery = "";
+    state.catalogPointFilter = "all";
+    state.catalogGroupFilter = "all";
+    state.catalogExpanded = false;
+    const searchInput = $("#catalog-search");
+    if (searchInput) searchInput.value = "";
+    const groupSelect = $("#catalog-group-filter");
+    if (groupSelect) groupSelect.value = "all";
+    renderCatalog();
   }
   async function renderShareCode() {
     const url = `${window.location.origin}${window.location.pathname}#calculator`;
@@ -6681,6 +6763,30 @@
       state.flowers = Math.max(0, Math.min(8, state.flowers + Number(flower.dataset.flowerStep)));
       renderAll();
     }
+    const pointPill = event.target.closest("[data-point-filter]");
+    if (pointPill) {
+      state.catalogPointFilter = pointPill.dataset.pointFilter;
+      renderCatalog();
+    }
+    const clearSearch = event.target.closest("#catalog-search-clear");
+    if (clearSearch) {
+      const input = $("#catalog-search");
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+      state.catalogQuery = "";
+      renderCatalog();
+    }
+    const expandCatalog = event.target.closest("#catalog-toggle-expand");
+    if (expandCatalog) {
+      state.catalogExpanded = !state.catalogExpanded;
+      renderCatalog();
+    }
+    const resetFilters = event.target.closest("#catalog-reset-filters, [data-reset-catalog]");
+    if (resetFilters) {
+      resetCatalogFilters();
+    }
   });
   $("#reset-hand").addEventListener("click", resetState);
   $("#load-sample").addEventListener("click", loadSample);
@@ -6693,10 +6799,27 @@
     state.seat = event.target.value;
     renderAll();
   });
+  $("#catalog-search").addEventListener("input", (event) => {
+    state.catalogQuery = event.target.value.trim();
+    renderCatalog();
+  });
+  $("#catalog-search").addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.target.value = "";
+      state.catalogQuery = "";
+      renderCatalog();
+      event.target.blur();
+    }
+  });
+  $("#catalog-group-filter").addEventListener("change", (event) => {
+    state.catalogGroupFilter = event.target.value;
+    renderCatalog();
+  });
   $$("[data-context-flag]").forEach((input) => input.addEventListener("change", (event) => {
     state.winContext = normalizeWinContext(state.winContext, { [event.target.dataset.contextFlag]: event.target.checked });
     renderAll();
   }));
+  initCatalogFilters();
   renderCatalog();
   renderAll();
   setView(["#catalog", "#guide"].includes(window.location.hash) ? window.location.hash.slice(1) : "calculator");

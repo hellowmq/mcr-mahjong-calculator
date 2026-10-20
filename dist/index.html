@@ -125,7 +125,34 @@
       </section>
 
       <section class="view catalog-view" data-view-panel="catalog" hidden aria-labelledby="catalog-title">
-        <header class="subpage-heading"><h2 id="catalog-title">81 番种表</h2><p>按番数整理，点击查看定义。</p></header>
+        <header class="subpage-heading"><h2 id="catalog-title">81 番种表</h2><p>按番数整理，支持搜索与多维筛选。</p></header>
+        <div class="catalog-filter-bar">
+          <div class="catalog-search-wrap">
+            <span class="catalog-search-icon" aria-hidden="true">🔍</span>
+            <input id="catalog-search" type="search" class="catalog-search-input" placeholder="搜索番种名、排斥或描述..." aria-label="搜索番种" autocomplete="off" />
+            <button id="catalog-search-clear" type="button" class="catalog-clear-btn" aria-label="清空搜索" hidden>✕</button>
+          </div>
+          <div class="catalog-pills" role="radiogroup" aria-label="番级筛选">
+            <button type="button" class="catalog-pill is-active" data-point-filter="all" role="radio" aria-checked="true">全部</button>
+            <button type="button" class="catalog-pill" data-point-filter="hu" role="radio" aria-checked="false">≥8番·可起和</button>
+            <button type="button" class="catalog-pill" data-point-filter="high" role="radio" aria-checked="false">高番 (88~24)</button>
+            <button type="button" class="catalog-pill" data-point-filter="mid" role="radio" aria-checked="false">中番 (16~8)</button>
+            <button type="button" class="catalog-pill" data-point-filter="low" role="radio" aria-checked="false">小番 (6~1)</button>
+          </div>
+          <div class="catalog-subfilter-row">
+            <label class="catalog-select-wrap">
+              <span class="sr-only">按系列筛选</span>
+              <select id="catalog-group-filter" class="catalog-group-select" aria-label="按系列筛选">
+                <option value="all">全系列</option>
+              </select>
+            </label>
+            <button id="catalog-toggle-expand" type="button" class="catalog-expand-btn">全部展开</button>
+          </div>
+          <div class="catalog-status-bar">
+            <span id="catalog-count" class="catalog-count" aria-live="polite">共 82 项番种</span>
+            <button id="catalog-reset-filters" type="button" class="catalog-reset-link" hidden>重置筛选</button>
+          </div>
+        </div>
         <div class="fan-catalog" id="fan-catalog"></div>
       </section>
 
