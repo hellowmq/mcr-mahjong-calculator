@@ -20,7 +20,7 @@
     <meta name="twitter:title" content="国标麻将算番器 · MCR" />
     <meta name="twitter:description" content="国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。" />
     <script type="application/ld+json">
-      {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application","name":"国标麻将算番器 · MCR","url":"https://tech.wenmq.cn/mcr-mahjong-calculator/","description":"国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","browserRequirements":"Requires JavaScript","inLanguage":"zh-CN","softwareVersion":"v0.1.4","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"author":{"@type":"Person","name":"hellowmq","url":"https://github.com/hellowmq"},"subjectOf":{"@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code"}},{"@type":"SoftwareSourceCode","@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code","name":"国标麻将算番器 · MCR源码","codeRepository":"https://github.com/hellowmq/mcr-mahjong-calculator","url":"https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.4","version":"v0.1.4","programmingLanguage":"JavaScript","targetProduct":{"@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application"}},{"@type":"FAQPage","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#site-faq","inLanguage":"zh-CN","mainEntity":[{"@type":"Question","name":"这是哪一种麻将规则的算番器？","acceptedAnswer":{"@type":"Answer","text":"本工具默认按 1998 中国官方麻将竞赛规则（MCR）口径算番，提供 81 番种表，并提示是否达到 8 番起和。不同地区麻将规则不适用；复杂赛事牌例以赛程规程为准。"}},{"@type":"Question","name":"如何查听牌和查看算番结果？","acceptedAnswer":{"@type":"Answer","text":"逐张点选麻将牌；已选牌计数达到 13 张时自动查听，达到 14 张时列出算番结果。副露可用吃、碰、明杠、暗杠和加杠录入，圈风、门风、花牌与和牌条件可另行设置。"}},{"@type":"Question","name":"需要账号或联网才能算番吗？","acceptedAnswer":{"@type":"Answer","text":"无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线访问统计与广告会连接 Google，不上传牌面或算番输入，离线时这些联网服务不可用。"}}]}]}
+      {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application","name":"国标麻将算番器 · MCR","url":"https://tech.wenmq.cn/mcr-mahjong-calculator/","description":"国标麻将（MCR）算番器：13 张查听、14 张算番，支持副露和和牌条件，提供 81 番种表；计算在浏览器本地完成，可离线使用。","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","browserRequirements":"Requires JavaScript","inLanguage":"zh-CN","softwareVersion":"v0.1.5","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"author":{"@type":"Person","name":"hellowmq","url":"https://github.com/hellowmq"},"subjectOf":{"@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code"}},{"@type":"SoftwareSourceCode","@id":"https://github.com/hellowmq/mcr-mahjong-calculator#source-code","name":"国标麻将算番器 · MCR源码","codeRepository":"https://github.com/hellowmq/mcr-mahjong-calculator","url":"https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.5","version":"v0.1.5","programmingLanguage":"JavaScript","targetProduct":{"@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#application"}},{"@type":"FAQPage","@id":"https://tech.wenmq.cn/mcr-mahjong-calculator/#site-faq","inLanguage":"zh-CN","mainEntity":[{"@type":"Question","name":"这是哪一种麻将规则的算番器？","acceptedAnswer":{"@type":"Answer","text":"本工具默认按 1998 中国官方麻将竞赛规则（MCR）口径算番，提供 81 番种表，并提示是否达到 8 番起和。不同地区麻将规则不适用；复杂赛事牌例以赛程规程为准。"}},{"@type":"Question","name":"如何查听牌和查看算番结果？","acceptedAnswer":{"@type":"Answer","text":"逐张点选麻将牌；已选牌计数达到 13 张时自动查听，达到 14 张时列出算番结果。副露可用吃、碰、明杠、暗杠和加杠录入，圈风、门风、花牌与和牌条件可另行设置。"}},{"@type":"Question","name":"需要账号或联网才能算番吗？","acceptedAnswer":{"@type":"Answer","text":"无需账号，牌局计算在当前浏览器本地完成。首次联网打开后，等待显示“离线缓存已就绪”，之后可在同一浏览器离线使用；清除浏览器数据后需重新联网缓存。在线访问统计与广告会连接 Google，不上传牌面或算番输入，离线时这些联网服务不可用。"}}]}]}
     </script>
     <script data-wenmq-analytics>
 (function bootstrap(config) {
@@ -84,7 +84,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20261019-interaction-2" />
+    <link rel="stylesheet" href="./styles.css?v=20261022-interaction-1" />
   </head>
   <body>
     <svg class="sprite-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
@@ -160,10 +160,13 @@
             <button type="button" class="action-tab" data-mode="jiaGang" aria-pressed="false">加杠</button>
           </div>
           <div class="draft-bar" id="draft-bar" hidden>
-            <span id="draft-label">选牌后自动完成</span>
-            <div class="draft-tiles" id="draft-tiles"></div>
+            <div class="draft-info">
+              <span id="draft-label">选牌后自动完成</span>
+              <div class="draft-tiles" id="draft-tiles"></div>
+            </div>
+            <button type="button" class="draft-cancel-btn" id="draft-cancel" aria-label="取消当前录入">取消</button>
           </div>
-          <details class="context-details" id="context-details" open>
+          <details class="context-details" id="context-details">
             <summary><strong>场况与特殊和法</strong><span id="context-summary">东风圈 · 东风位 · 点和 · 花牌 0</span></summary>
             <div class="context-content">
               <div class="condition-grid">
@@ -336,7 +339,7 @@
         <p class="guide-note">算番逻辑在本机浏览器运行；默认按 1998 规则口径，复杂赛事牌例以赛程规程为准。</p>
                 <section class="site-source" aria-labelledby="site-source-title">
           <h3 id="site-source-title">源码与反馈</h3>
-          <p>由 <a href="https://github.com/hellowmq" target="_blank" rel="noopener noreferrer">hellowmq</a> 维护。当前工具版本 <a href="https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.4" target="_blank" rel="noopener noreferrer">v0.1.4</a>，规则依赖与许可说明见源码仓库。遇到问题，可附上牌例、副露与和牌条件反馈。</p>
+          <p>由 <a href="https://github.com/hellowmq" target="_blank" rel="noopener noreferrer">hellowmq</a> 维护。当前工具版本 <a href="https://github.com/hellowmq/mcr-mahjong-calculator/tree/v0.1.5" target="_blank" rel="noopener noreferrer">v0.1.5</a>，规则依赖与许可说明见源码仓库。遇到问题，可附上牌例、副露与和牌条件反馈。</p>
           <nav class="site-source-links" aria-label="源码与站点链接">
             <a href="https://github.com/hellowmq/mcr-mahjong-calculator" target="_blank" rel="noopener noreferrer">源码仓库</a>
             <a href="https://github.com/hellowmq/mcr-mahjong-calculator/issues" target="_blank" rel="noopener noreferrer">提交问题</a>
@@ -374,7 +377,7 @@
       <button type="button" class="bottom-nav-item" data-view="catalog"><span class="nav-icon">▤</span>番表</button>
       <button type="button" class="bottom-nav-item" data-view="guide"><span class="nav-icon">◌</span>用法</button>
     </nav>
-    <script src="./app.js?v=20261019-interaction-2" defer></script>
+    <script src="./app.js?v=20261022-interaction-1" defer></script>
     <script src="./pwa.js" defer></script>
   </body>
 </html>

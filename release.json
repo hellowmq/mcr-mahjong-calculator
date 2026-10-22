@@ -2,24 +2,24 @@
   "schemaVersion": 1,
   "site": "mcr-mahjong-calculator",
   "target": "pages",
-  "tag": "v0.1.4",
+  "tag": "v0.1.5",
   "sourceRepository": "https://github.com/hellowmq/mcr-mahjong-calculator.git",
-  "sourceSha": "7cd56928abdf5338433ca848b56e264d86eb9386",
-  "configSha256": "2a59ecff9815c5fd25d4d2b62665e8364b23d117a6a9b973eba6d2351bb5336e",
-  "workflowRevision": "249ed2978a6e0edca945fc90e0da38ea1c183adc",
-  "deploymentRef": "refs/tags/deploy/mcr-mahjong-calculator/v0.1.4",
+  "sourceSha": "6474ce56aa6c5c245449ddfbda2dc74eb86ebe3a",
+  "configSha256": "08cab28610403c2f08e2babff3d78ba0eaeb6877b9aa0a207d339af2ec3244d8",
+  "workflowRevision": "093a47f8f04c35fd11b6cc7b7dc2b66f6ac75e52",
+  "deploymentRef": "refs/tags/deploy/mcr-mahjong-calculator/v0.1.5",
   "files": {
     ".nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "app.js": "2fc5da08e0fa1e6fde49833d5de0e9fe743a7b250d28baad3b940b0bf2f70b45",
+    "app.js": "0b66c073b9f6799ce0310809a62c8143c50bd7956bf3ac92e09575320076b37a",
     "favicon.svg": "f87f77209c72777a2d6db79b1be97e87364e0bc555e6ea63f92f949aebac9f1a",
     "icon-192.png": "61562b372b926cbc7a65f7a5074dca7cb456a7a8a6a64c346ea4b0cd3d38e29e",
     "icon-512.png": "6486676cdf4f1feaba0fcba25b94517152cfa9f51d2bb7fce1de4e6c1601f030",
-    "index.html": "a9c23a766c8650732ac19f8e5c8a0e61f06fe25cbfbc378b696cc617b189c92b",
+    "index.html": "545acb3d318e86fdcc6d1e4692357b0660eac659b64376c876306a36bc05fc6e",
     "mahjong-sprite.svg": "05fa20044cd9bca4486a2dd5c1d0cac77a36f0405e3126f37373e90263c7a788",
     "manifest.webmanifest": "07aeb8b9f338feb5163a7272a53b2e02638ccd7f2508ae356f0829f1467fd387",
     "pwa.js": "9d12685f2c581b2c4bde0c1763293e31ef6ee09b7a2e1bd13b0d3055e1e8f5fc",
     "sitemap.xml": "3a61ac717a4c402dd1fca69fb5c7912dd7d91063c2282b7aa8d6219b0b5a9b19",
-    "styles.css": "0d30a82e7c5ecfeb40d782f5d242b8830fcc79d00a68f58fad12c36bd4a2a0df",
-    "sw.js": "7189990d0508eda28b430c4ceb5d9117a3bd5fa83f1ac042b791427a1680928b"
+    "styles.css": "5991eded0e453b27655883f00c6f9f6ab0981eb0310a754286ecd8e0d369e31c",
+    "sw.js": "b9d4b1e3fb47423c450dfb9ffe9c7348ddb16d2ed11d3723dba8004981b68307"
   }
 }

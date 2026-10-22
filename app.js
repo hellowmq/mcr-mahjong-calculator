@@ -6314,6 +6314,7 @@
         const count = countTile(code);
         const kongAction = state.mode === "anGang" && count === 4 || state.mode === "jiaGang" && count === 4 && state.melds.some((meld) => meld.type === "peng" && meld.tiles[0] === code);
         button.disabled = count >= 4 && !kongAction;
+        button.dataset.count = String(count);
         button.setAttribute("aria-label", `${tileLabel(code)}，当前已有 ${count} 张`);
       }
     }
@@ -6339,7 +6340,8 @@
   }
   function renderDraft() {
     const meta = MODE_META[state.mode];
-    $("#draft-bar").hidden = state.mode === "hand";
+    const draftBar = $("#draft-bar");
+    draftBar.hidden = state.mode === "hand";
     if (state.mode === "hand") return;
     const quickHint = {
       peng: "碰 · 点一张牌，自动录入三张",
@@ -6348,14 +6350,15 @@
       jiaGang: "加杠 · 点一张牌，升级已有碰"
     }[state.mode];
     $("#draft-label").textContent = state.draftError || (quickHint || `组一副${meta.label} · 选 ${state.draft.length}/${meta.need} 张，选满自动完成`);
+    draftBar.classList.toggle("has-error", Boolean(state.draftError));
     $("#draft-tiles").innerHTML = state.draft.map((tile, index) => `<button type="button" class="mini-tile" data-remove-draft="${index}" aria-label="撤回${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("");
   }
   function renderHand() {
     const total = selectedCount();
     $("#selection-count").textContent = `${total} / 14`;
-    $("#selection-label").textContent = state.mode === "hand" ? "逐张点牌" : `正在录入${MODE_META[state.mode].label}`;
-    $("#hand-state").textContent = total === 13 ? "等待一张和牌" : total === 14 ? "最后一张是和牌" : `还差 ${Math.max(0, 13 - total)} 张`;
-    $("#selected-rack").innerHTML = state.hand.length ? state.hand.map((tile, index) => `<button type="button" class="selected-tile${index === state.hand.length - 1 && total === 14 ? " is-winning" : ""}" data-remove-hand="${index}" aria-label="移除${tileLabel(tile)}">${tileSvg(tile)}</button>`).join("") : `<p class="empty-rack">点下方牌池录入手牌</p>`;
+    $("#selection-label").textContent = state.mode === "hand" ? "逐张点牌" : `录入${MODE_META[state.mode].label}`;
+    $("#hand-state").textContent = total === 13 ? "听牌中 · 选和牌张或点下方听牌" : total === 14 ? "最后一张为和牌张" : `还差 ${Math.max(0, 13 - total)} 张听牌`;
+    $("#selected-rack").innerHTML = state.hand.length ? state.hand.map((tile, index) => `<button type="button" class="selected-tile${index === state.hand.length - 1 && total === 14 ? " is-winning" : ""}" data-remove-hand="${index}" aria-label="移除${tileLabel(tile)}${index === state.hand.length - 1 && total === 14 ? "（和牌张）" : ""}" title="点击移除">${tileSvg(tile)}</button>`).join("") : `<p class="empty-rack">点下方牌池录入手牌</p>`;
     $("#meld-rack").innerHTML = state.melds.map((meld, index) => `<div class="meld-group"><span>${MODE_META[meld.type].label}</span>${meld.tiles.map((tile) => `<i>${tileSvg(tile)}</i>`).join("")}<button type="button" data-remove-meld="${index}" aria-label="移除这副${MODE_META[meld.type].label}">×</button></div>`).join("");
   }
   function renderConditions() {
@@ -6366,6 +6369,8 @@
     if (state.winContext.lastTile) extras.push(lastTileLabel(state.winContext).split("（")[0]);
     if (state.winContext.fourthTile) extras.push("和绝张");
     $("#context-summary").textContent = `${WIND_LABELS[state.round]}风圈 · ${WIND_LABELS[state.seat]}风位 · ${extras.join(" · ")} · 花牌 ${state.flowers}`;
+    const hasCustomContext = state.winContext.selfDrawn || state.winContext.fourthTile || state.winContext.gang || state.winContext.lastTile || state.flowers > 0 || state.round !== "E" || state.seat !== "E";
+    $("#context-details").classList.toggle("has-custom", hasCustomContext);
     $$("[data-context-flag]").forEach((input) => {
       input.checked = state.winContext[input.dataset.contextFlag];
       const flag = input.dataset.contextFlag;
@@ -6418,7 +6423,7 @@
   }
   function resultCard(wait) {
     const eligible = coreTotal(wait.result) >= 8;
-    return `<button type="button" class="wait-card${eligible ? "" : " is-low"}" data-promote-tile="${wait.tile}" aria-label="选择${tileLabel(wait.tile)}作为和牌，${wait.result.totalFan}番">${tileSvg(wait.tile)}<span><strong>${wait.result.totalFan}番</strong><small>${eligible ? "可和" : "不足 8 番"}</small></span></button>`;
+    return `<button type="button" class="wait-card${eligible ? " is-hu" : " is-low"}" data-promote-tile="${wait.tile}" aria-label="选择${tileLabel(wait.tile)}作为和牌，${wait.result.totalFan}番">${tileSvg(wait.tile)}<span class="wait-card-info"><strong>${wait.result.totalFan}番</strong><small class="wait-badge">${eligible ? "可和" : "不足 8 番"}</small></span><span class="wait-action-cue" aria-hidden="true">+</span></button>`;
   }
   function friendlyEngineErrorMessage(error) {
     const message = error?.message || String(error);
@@ -6437,7 +6442,7 @@
     const eligible = coreTotal(result) >= 8;
     $("#result-title").textContent = result.isHu ? `${result.totalFan} 番` : "未构成和牌";
     $("#result-subtitle").textContent = result.isHu ? eligible ? "达到 8 番起和" : "未达到 8 番起和" : "检查牌数与副露";
-    $("#result-content").innerHTML = result.isHu ? `<div class="fan-list">${fanItems(result).map((fan) => `<div><span>${fan.displayName}</span><strong>+${fan.points}</strong></div>`).join("")}</div><p class="result-note">${result.decomposition?.packs?.length ? "已选取番数最高的合法拆解。" : "特殊和型已按规则单独判断。"}</p>` : `<p class="empty-result">这 14 张牌不能组成合法和牌；可点选已选牌移除后继续调整。</p>`;
+    $("#result-content").innerHTML = result.isHu ? `<div class="result-score-banner${eligible ? " is-hu" : " is-low"}"><div class="result-score-main"><span class="score-num">${result.totalFan}</span><span class="score-unit">番</span><span class="score-status-pill">${eligible ? "✓ 达到 8 番起和" : "! 未达 8 番起和"}</span></div></div><div class="fan-list">${fanItems(result).map((fan) => `<div><span>${fan.displayName}</span><strong>+${fan.points}</strong></div>`).join("")}</div><p class="result-note">${result.decomposition?.packs?.length ? "已选取番数最高的合法拆解。" : "特殊和型已按规则单独判断。"}</p>` : `<p class="empty-result">这 14 张牌不能组成合法和牌；可点选已选牌移除后继续调整。</p>`;
   }
   function renderResults() {
     const total = selectedCount();
@@ -6749,9 +6754,16 @@
       state.draftError = "";
       renderAll();
     }
+    const cancelDraft = event.target.closest("#draft-cancel");
+    if (cancelDraft) {
+      state.mode = "hand";
+      state.draft = [];
+      state.draftError = "";
+      renderAll();
+    }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
-      state.mode = mode.dataset.mode;
+      state.mode = state.mode === mode.dataset.mode && state.mode !== "hand" ? "hand" : mode.dataset.mode;
       state.draft = [];
       state.draftError = "";
       renderAll();
